@@ -4,378 +4,211 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
   <title>Whack-a-Mole!</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet"/>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700;800;900&display=swap');
-
     :root {
-      --green:      #2ecc40;
-      --dkgreen:    #1a8a27;
-      --sky1:       #74d7f7;
-      --sky2:       #c5ecfb;
-      --brown:      #7b4f2e;
-      --dirt1:      #c8975a;
-      --dirt2:      #a0693a;
-      --yellow:     #ffd000;
-      --red:        #ff3b30;
-      --purple:     #af52de;
-      --blue:       #007aff;
-      --orange:     #ff9500;
-      --outline:    #2d1a0e;
+      --green:   #2ecc40; --dkgreen: #1a8a27;
+      --sky1:    #74d7f7; --sky2:    #c5ecfb;
+      --brown:   #7b4f2e; --dirt1:   #c8975a; --dirt2: #a0693a;
+      --yellow:  #ffd000; --red:     #ff3b30;
+      --purple:  #af52de; --blue:    #007aff; --orange: #ff9500;
+      --outline: #2d1a0e;
     }
-
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    html, body {
-      width: 100%; height: 100%;
-      overflow-x: hidden;
-      touch-action: manipulation;
-    }
-
+    html, body { width:100%; min-height:100vh; overflow-x:hidden; touch-action:manipulation; }
     body {
       font-family: 'Nunito', sans-serif;
       background: linear-gradient(180deg, var(--sky1) 0%, var(--sky2) 38%, var(--green) 38%, var(--dkgreen) 100%);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      user-select: none;
-      -webkit-tap-highlight-color: transparent;
+      background-attachment: fixed;
+      display: flex; flex-direction: column; align-items: center;
+      user-select: none; -webkit-tap-highlight-color: transparent;
     }
-
     /* clouds */
     body::before, body::after {
-      content: '';
-      position: fixed;
-      top: 6%;
-      background: #fff;
-      border-radius: 50px;
-      opacity: .85;
-      pointer-events: none;
-      z-index: 0;
+      content:''; position:fixed; top:5%; background:#fff;
+      border-radius:50px; opacity:.8; pointer-events:none; z-index:0;
     }
-    body::before { left: 5%;  width: 120px; height: 45px; box-shadow: 60px -12px 0 20px #fff, 25px -20px 0 10px #fff; }
-    body::after  { right: 6%; width: 100px; height: 38px; box-shadow: 50px -10px 0 18px #fff, 20px -16px 0 8px #fff; }
+    body::before { left:4%;  width:120px; height:44px; box-shadow:60px -12px 0 20px #fff, 25px -20px 0 10px #fff; }
+    body::after  { right:5%; width:100px; height:36px; box-shadow:50px -10px 0 18px #fff, 20px -16px 0 8px #fff; }
 
-    /* ── TITLE ── */
     #main-title {
-      font-family: 'Fredoka One', cursive;
-      font-size: clamp(2.2rem, 7vw, 4rem);
-      color: #fff;
-      text-shadow: 4px 4px 0 var(--brown), 6px 6px 0 rgba(0,0,0,.2);
-      margin: 16px 0 4px;
-      letter-spacing: 2px;
-      position: relative;
-      z-index: 1;
-      text-align: center;
+      font-family:'Fredoka One',cursive;
+      font-size: clamp(2rem,7vw,3.8rem);
+      color:#fff; text-shadow:4px 4px 0 var(--brown),6px 6px 0 rgba(0,0,0,.2);
+      margin:14px 0 4px; letter-spacing:2px; position:relative; z-index:1; text-align:center;
     }
 
     /* ── SCREENS ── */
-    .screen { display: none; width: 100%; max-width: 640px; padding: 8px 14px 30px; position: relative; z-index: 1; }
-    .screen.active { display: flex; flex-direction: column; align-items: center; }
+    .screen { display:none; width:100%; max-width:660px; padding:8px 14px 30px; position:relative; z-index:1; }
+    .screen.active { display:flex; flex-direction:column; align-items:center; }
 
     /* ── CARD ── */
     .card {
-      background: #fffbe6;
-      border: 4px solid var(--outline);
-      border-radius: 28px;
-      padding: 28px 28px;
-      text-align: center;
-      width: 100%;
-      box-shadow: 6px 6px 0 var(--outline);
-      margin-top: 14px;
+      background:#fffbe6; border:4px solid var(--outline);
+      border-radius:28px; padding:28px 24px; text-align:center;
+      width:100%; box-shadow:6px 6px 0 var(--outline); margin-top:14px;
     }
-    .card h2 {
-      font-family: 'Fredoka One', cursive;
-      color: var(--brown);
-      font-size: clamp(1.6rem, 5vw, 2.2rem);
-      margin-bottom: 6px;
-    }
-    .card p { color: #7b6050; font-size: 1rem; margin-bottom: 20px; font-weight: 700; }
+    .card h2 { font-family:'Fredoka One',cursive; color:var(--brown); font-size:clamp(1.5rem,5vw,2.1rem); margin-bottom:6px; }
+    .card p  { color:#7b6050; font-size:.95rem; font-weight:700; margin-bottom:16px; line-height:1.5; }
 
-    label { font-weight: 800; color: var(--brown); font-size: 1rem; display: block; margin-bottom: 6px; text-align: left; }
+    /* ── INPUTS ── */
+    label { font-weight:800; color:var(--brown); font-size:1rem; display:block; margin-bottom:6px; text-align:left; }
     input[type="text"] {
-      width: 100%;
-      padding: 14px 16px;
-      border: 3px solid var(--outline);
-      border-radius: 14px;
-      font-size: 1.15rem;
-      font-family: 'Nunito', sans-serif;
-      font-weight: 800;
-      outline: none;
-      background: #fff;
-      margin-bottom: 20px;
-      box-shadow: 3px 3px 0 var(--outline);
-      transition: border-color .2s;
+      width:100%; padding:13px 16px; border:3px solid var(--outline); border-radius:14px;
+      font-size:1.1rem; font-family:'Nunito',sans-serif; font-weight:800;
+      outline:none; background:#fff; margin-bottom:16px; box-shadow:3px 3px 0 var(--outline);
     }
-    input[type="text"]:focus { border-color: var(--green); }
+    input[type="text"]:focus { border-color:var(--green); }
 
     /* ── BUTTONS ── */
     .btn {
-      display: inline-block;
-      padding: 14px 32px;
-      border: 3px solid var(--outline);
-      border-radius: 50px;
-      font-family: 'Fredoka One', cursive;
-      font-size: clamp(1.1rem, 4vw, 1.45rem);
-      cursor: pointer;
-      transition: transform .08s, box-shadow .08s;
-      box-shadow: 4px 4px 0 var(--outline);
-      letter-spacing: 1px;
-      text-decoration: none;
-      margin: 4px;
+      display:inline-flex; align-items:center; justify-content:center; gap:8px;
+      padding:13px 28px; border:3px solid var(--outline); border-radius:50px;
+      font-family:'Fredoka One',cursive; font-size:clamp(1rem,3.5vw,1.35rem);
+      cursor:pointer; transition:transform .08s, box-shadow .08s;
+      box-shadow:4px 4px 0 var(--outline); letter-spacing:1px; margin:4px;
     }
-    .btn:active { transform: translate(3px,3px); box-shadow: 1px 1px 0 var(--outline); }
-    .btn-green  { background: var(--green);  color: #fff; }
-    .btn-yellow { background: var(--yellow); color: var(--outline); }
-    .btn-blue   { background: var(--blue);   color: #fff; }
-    .btn-red    { background: var(--red);    color: #fff; }
-    .btn-purple { background: var(--purple); color: #fff; }
-    .btn-orange { background: var(--orange); color: #fff; }
+    .btn:active { transform:translate(3px,3px); box-shadow:1px 1px 0 var(--outline); }
+    .btn-green  { background:var(--green);  color:#fff; }
+    .btn-yellow { background:var(--yellow); color:var(--outline); }
+    .btn-blue   { background:var(--blue);   color:#fff; }
+    .btn-red    { background:var(--red);    color:#fff; }
+    .btn-purple { background:var(--purple); color:#fff; }
+    .btn-orange { background:var(--orange); color:#fff; }
+    .btn-white  { background:#fff; color:var(--outline); }
 
-    /* ── LEVEL SELECT ── */
-    #level-screen .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-      gap: 12px;
-      width: 100%;
-      margin: 16px 0;
+    /* ── GOOGLE SIGN-IN BUTTON ── */
+    .btn-google {
+      background:#fff; color:#3c4043; border:3px solid var(--outline);
+      box-shadow:4px 4px 0 var(--outline); font-family:'Nunito',sans-serif;
+      font-weight:800; font-size:1.05rem; padding:13px 24px; border-radius:50px;
+      cursor:pointer; display:inline-flex; align-items:center; gap:10px;
+      transition:transform .08s, box-shadow .08s; margin:4px;
     }
+    .btn-google:active { transform:translate(3px,3px); box-shadow:1px 1px 0 var(--outline); }
+    .btn-google svg { width:22px; height:22px; flex-shrink:0; }
+
+    /* ── USER AVATAR BAR ── */
+    #user-bar {
+      display:none; align-items:center; gap:10px;
+      background:rgba(255,255,255,.9); border:3px solid var(--outline);
+      border-radius:50px; padding:6px 16px 6px 6px;
+      box-shadow:3px 3px 0 var(--outline); margin-top:10px; position:relative; z-index:1;
+    }
+    #user-bar.visible { display:flex; }
+    #user-avatar { width:36px; height:36px; border-radius:50%; border:2px solid var(--outline); object-fit:cover; }
+    #user-name-bar { font-weight:800; color:var(--brown); font-size:.95rem; }
+    #signout-btn { font-size:.75rem; color:#aaa; cursor:pointer; font-weight:700; text-decoration:underline; margin-left:6px; }
+
+    /* ── SETUP SCREEN ── */
+    .setup-step { text-align:left; background:#fff; border:2px solid #e0d8c8; border-radius:14px; padding:12px 16px; margin-bottom:10px; }
+    .setup-step-num { font-family:'Fredoka One',cursive; color:var(--blue); font-size:1.2rem; }
+    .setup-step p { color:#555; font-size:.88rem; margin-top:4px; line-height:1.6; }
+    .setup-step code { background:#f0f0f0; padding:2px 6px; border-radius:6px; font-size:.82rem; font-family:monospace; }
+    .setup-step a { color:var(--blue); }
+
+    /* ── LEVEL GRID ── */
+    #level-screen .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(115px,1fr)); gap:11px; width:100%; margin:14px 0; }
     .level-btn {
-      background: #fffbe6;
-      border: 3px solid var(--outline);
-      border-radius: 18px;
-      padding: 16px 8px;
-      text-align: center;
-      cursor: pointer;
-      box-shadow: 4px 4px 0 var(--outline);
-      transition: transform .08s, box-shadow .08s;
+      background:#fffbe6; border:3px solid var(--outline); border-radius:18px;
+      padding:14px 8px; text-align:center; cursor:pointer;
+      box-shadow:4px 4px 0 var(--outline); transition:transform .08s,box-shadow .08s;
     }
-    .level-btn:active:not(.locked) { transform: translate(3px,3px); box-shadow: 1px 1px 0 var(--outline); }
-    .level-btn:hover:not(.locked)  { transform: translateY(-3px); }
-    .level-btn.locked   { opacity: .45; cursor: not-allowed; filter: grayscale(1); }
-    .level-btn.complete { background: #e8ffe8; border-color: var(--green); }
-    .level-btn .lv-num  { font-family: 'Fredoka One', cursive; font-size: 2rem; line-height: 1; }
-    .level-btn .lv-name { font-size: .8rem; font-weight: 800; color: #888; margin-top: 4px; }
-    .lv-1 .lv-num { color: var(--green); }
-    .lv-2 .lv-num { color: var(--blue); }
-    .lv-3 .lv-num { color: var(--orange); }
-    .lv-4 .lv-num { color: var(--red); }
-    .lv-5 .lv-num { color: var(--purple); }
-
-    #welcome-msg {
-      font-family: 'Fredoka One', cursive;
-      font-size: clamp(1.2rem, 4vw, 1.6rem);
-      color: #fff;
-      text-shadow: 2px 2px 0 rgba(0,0,0,.2);
-      margin: 10px 0 0;
-      text-align: center;
-    }
+    .level-btn:hover:not(.locked) { transform:translateY(-3px); }
+    .level-btn:active:not(.locked) { transform:translate(3px,3px); box-shadow:1px 1px 0 var(--outline); }
+    .level-btn.locked   { opacity:.4; cursor:not-allowed; filter:grayscale(1); }
+    .level-btn.complete { background:#e8ffe8; border-color:var(--green); }
+    .level-btn .lv-num  { font-family:'Fredoka One',cursive; font-size:1.8rem; line-height:1; }
+    .level-btn .lv-name { font-size:.75rem; font-weight:800; color:#888; margin-top:3px; }
+    .lv-1  .lv-num { color:#4cde5a; } .lv-2  .lv-num { color:#34c2e8; }
+    .lv-3  .lv-num { color:#ffd000; } .lv-4  .lv-num { color:#ff9500; }
+    .lv-5  .lv-num { color:#ff3b30; } .lv-6  .lv-num { color:#af52de; }
+    .lv-7  .lv-num { color:#007aff; } .lv-8  .lv-num { color:#ff2d55; }
+    .lv-9  .lv-num { color:#5856d6; } .lv-10 .lv-num { color:#ff3a00; }
+    #welcome-msg { font-family:'Fredoka One',cursive; font-size:clamp(1.1rem,4vw,1.5rem); color:#fff; text-shadow:2px 2px 0 rgba(0,0,0,.2); margin:8px 0 0; text-align:center; }
 
     /* ── HUD ── */
-    #game-screen { gap: 8px; }
-    .hud {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 8px;
-      width: 100%;
-    }
-    .hud-box {
-      background: #fffbe6;
-      border: 3px solid var(--outline);
-      border-radius: 14px;
-      padding: 8px 4px;
-      text-align: center;
-      box-shadow: 3px 3px 0 var(--outline);
-    }
-    .hud-label { font-size: .65rem; font-weight: 800; color: #aaa; text-transform: uppercase; letter-spacing: .5px; }
-    .hud-val   { font-family: 'Fredoka One', cursive; font-size: clamp(1.4rem, 5vw, 2rem); color: var(--brown); line-height: 1.1; }
-    #timer-val  { color: var(--red); }
-    #score-val  { color: var(--green); }
-    #target-val { color: var(--blue); }
-
-    /* ── PROGRESS BAR ── */
-    .progress-wrap {
-      width: 100%;
-      background: rgba(255,255,255,.35);
-      border: 3px solid var(--outline);
-      border-radius: 99px;
-      height: 18px;
-      overflow: hidden;
-      box-shadow: 3px 3px 0 var(--outline);
-    }
-    .progress-bar {
-      height: 100%;
-      background: linear-gradient(90deg, var(--green), var(--yellow));
-      border-radius: 99px;
-      transition: width .25s;
-    }
+    #game-screen { gap:8px; }
+    .hud { display:grid; grid-template-columns:repeat(4,1fr); gap:7px; width:100%; }
+    .hud-box { background:#fffbe6; border:3px solid var(--outline); border-radius:14px; padding:7px 4px; text-align:center; box-shadow:3px 3px 0 var(--outline); }
+    .hud-label { font-size:.6rem; font-weight:800; color:#aaa; text-transform:uppercase; letter-spacing:.5px; }
+    .hud-val   { font-family:'Fredoka One',cursive; font-size:clamp(1.3rem,4.5vw,1.9rem); color:var(--brown); line-height:1.1; }
+    #timer-val  { color:var(--red); } #score-val { color:var(--green); } #target-val { color:var(--blue); }
+    .progress-wrap { width:100%; background:rgba(255,255,255,.35); border:3px solid var(--outline); border-radius:99px; height:17px; overflow:hidden; box-shadow:3px 3px 0 var(--outline); }
+    .progress-bar  { height:100%; background:linear-gradient(90deg,var(--green),var(--yellow)); border-radius:99px; transition:width .25s; }
 
     /* ── MOLE GRID ── */
-    #mole-grid {
-      display: grid;
-      gap: clamp(10px, 3vw, 20px);
-      width: 100%;
-      padding: 16px;
-      background: rgba(0,0,0,.06);
-      border: 3px solid rgba(0,0,0,.1);
-      border-radius: 24px;
-    }
+    #mole-grid { display:grid; gap:clamp(8px,2.5vw,18px); width:100%; padding:14px; background:rgba(0,0,0,.06); border:3px solid rgba(0,0,0,.1); border-radius:22px; }
+    .hole { position:relative; width:100%; padding-bottom:54%; cursor:pointer; }
+    .dirt-mound { position:absolute; bottom:0; left:0; right:0; height:100%; background:radial-gradient(ellipse at 50% 65%,var(--dirt1) 40%,var(--dirt2) 100%); border-radius:50%; border:3px solid var(--outline); box-shadow:4px 4px 0 rgba(0,0,0,.2); }
+    .hole-center { position:absolute; bottom:10%; left:50%; transform:translateX(-50%); width:58%; height:48%; background:radial-gradient(ellipse,#1a0800 20%,#3d1c00 100%); border-radius:50%; border:2px solid var(--outline); }
+    .mole { position:absolute; bottom:26%; left:50%; transform:translateX(-50%) translateY(130%); width:80%; z-index:10; transition:transform .15s cubic-bezier(.34,1.56,.64,1); pointer-events:none; cursor:pointer; }
+    .mole.up      { transform:translateX(-50%) translateY(6%);   pointer-events:all; }
+    .mole.whacked { transform:translateX(-50%) translateY(130%); pointer-events:none; transition:transform .18s ease-in; }
+    .mole svg { width:100%; height:auto; filter:drop-shadow(2px 3px 0 rgba(0,0,0,.35)); }
 
-    /* ── HOLE ── */
-    .hole-wrap { position: relative; display: flex; flex-direction: column; align-items: center; }
-
-    .hole {
-      position: relative;
-      width: 100%;
-      padding-bottom: 52%;   /* aspect ratio for the ellipse */
-      cursor: pointer;
-    }
-    /* dirt mound */
-    .dirt-mound {
-      position: absolute;
-      bottom: 0; left: 0; right: 0;
-      height: 100%;
-      background: radial-gradient(ellipse at 50% 65%, var(--dirt1) 40%, var(--dirt2) 100%);
-      border-radius: 50%;
-      border: 3px solid var(--outline);
-      box-shadow: 4px 4px 0 rgba(0,0,0,.2);
-      overflow: hidden;
-    }
-    /* dark centre */
-    .hole-center {
-      position: absolute;
-      bottom: 10%; left: 50%; transform: translateX(-50%);
-      width: 58%; height: 48%;
-      background: radial-gradient(ellipse, #1a0800 20%, #3d1c00 100%);
-      border-radius: 50%;
-      border: 2px solid var(--outline);
-    }
-
-    /* ── MOLE ── */
-    .mole {
-      position: absolute;
-      bottom: 28%;
-      left: 50%;
-      transform: translateX(-50%) translateY(130%);
-      width: 78%;
-      z-index: 10;
-      transition: transform .15s cubic-bezier(.34,1.56,.64,1);
-      pointer-events: none;
-      cursor: pointer;
-    }
-    .mole.up {
-      transform: translateX(-50%) translateY(8%);
-      pointer-events: all;
-    }
-    .mole.whacked {
-      transform: translateX(-50%) translateY(130%);
-      pointer-events: none;
-      transition: transform .18s ease-in;
-    }
-    .mole svg { width: 100%; height: auto; filter: drop-shadow(2px 3px 0px rgba(0,0,0,.35)); }
-
-    /* ── COUNTDOWN OVERLAY ── */
-    #countdown-overlay {
-      position: fixed; inset: 0;
-      background: rgba(0,0,0,.6);
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      z-index: 999;
-    }
-    #countdown-overlay.hidden { display: none; }
-    #countdown-num {
-      font-family: 'Fredoka One', cursive;
-      font-size: clamp(6rem, 25vw, 12rem);
-      color: #fff;
-      text-shadow: 0 0 40px rgba(255,255,200,.6);
-      animation: cpop .5s ease;
-      line-height: 1;
-    }
-    #countdown-text {
-      font-family: 'Fredoka One', cursive;
-      font-size: clamp(1.4rem, 5vw, 2.2rem);
-      color: #ffe;
-      margin-top: 8px;
-    }
+    /* ── COUNTDOWN ── */
+    #countdown-overlay { position:fixed; inset:0; background:rgba(0,0,0,.6); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:999; }
+    #countdown-overlay.hidden { display:none; }
+    #countdown-num  { font-family:'Fredoka One',cursive; font-size:clamp(6rem,22vw,11rem); color:#fff; text-shadow:0 0 40px rgba(255,255,200,.6); animation:cpop .5s ease; line-height:1; }
+    #countdown-text { font-family:'Fredoka One',cursive; font-size:clamp(1.3rem,4vw,2rem); color:#ffe; margin-top:8px; }
     @keyframes cpop { 0%{transform:scale(2.2);opacity:0} 60%{transform:scale(.9)} 100%{transform:scale(1);opacity:1} }
 
     /* ── WHACK BURST ── */
-    .whack-burst {
-      position: fixed;
-      pointer-events: none;
-      z-index: 900;
-      display: flex; align-items: center; justify-content: center;
-      transform: translate(-50%, -50%);
-      animation: burstAnim .55s ease forwards;
-    }
-    .whack-burst svg { width: 110px; height: 110px; }
-    @keyframes burstAnim {
-      0%   { transform: translate(-50%,-50%) scale(.4) rotate(-8deg); opacity:1; }
-      55%  { transform: translate(-50%,-50%) scale(1.15) rotate(6deg); opacity:1; }
-      100% { transform: translate(-50%,-50%) scale(1.3) rotate(4deg); opacity:0; }
-    }
+    .whack-burst { position:fixed; pointer-events:none; z-index:900; transform:translate(-50%,-50%); animation:burstAnim .55s ease forwards; }
+    .whack-burst svg { width:105px; height:105px; }
+    @keyframes burstAnim { 0%{transform:translate(-50%,-50%) scale(.4) rotate(-8deg);opacity:1} 55%{transform:translate(-50%,-50%) scale(1.15) rotate(6deg);opacity:1} 100%{transform:translate(-50%,-50%) scale(1.3) rotate(4deg);opacity:0} }
+    .screen-flash { position:fixed; inset:0; pointer-events:none; z-index:800; animation:flashAnim .2s ease forwards; }
+    @keyframes flashAnim { 0%{opacity:.5} 100%{opacity:0} }
 
-    /* ── SCREEN FLASH ── */
-    .screen-flash {
-      position: fixed; inset: 0;
-      pointer-events: none;
-      z-index: 800;
-      animation: flashAnim .2s ease forwards;
-    }
-    @keyframes flashAnim { 0%{opacity:.55} 100%{opacity:0} }
-
-    /* ── RESULT SCREEN ── */
-    .result-emoji { font-size: clamp(3rem, 10vw, 5rem); margin-bottom: 6px; }
-    .result-title { font-family: 'Fredoka One', cursive; font-size: clamp(1.8rem,6vw,2.5rem); color: var(--brown); margin-bottom: 4px; }
-    .result-sub   { color: #8a6a50; font-size: .95rem; font-weight: 700; margin-bottom: 18px; }
-    .result-stats { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 20px; }
-    .stat-box { background: #fff; border: 3px solid var(--outline); border-radius: 16px; padding: 12px 18px; min-width: 80px; box-shadow: 3px 3px 0 var(--outline); }
-    .stat-val { font-family: 'Fredoka One', cursive; font-size: clamp(1.6rem,5vw,2.2rem); color: var(--green); }
-    .stat-lbl { font-size: .75rem; color: #aaa; font-weight: 800; text-transform: uppercase; }
-    .result-btns  { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+    /* ── RESULT ── */
+    .result-emoji { font-size:clamp(3rem,9vw,4.5rem); margin-bottom:6px; }
+    .result-title { font-family:'Fredoka One',cursive; font-size:clamp(1.7rem,5.5vw,2.4rem); color:var(--brown); margin-bottom:4px; }
+    .result-sub   { color:#8a6a50; font-size:.92rem; font-weight:700; margin-bottom:16px; }
+    .result-stats { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-bottom:18px; }
+    .stat-box { background:#fff; border:3px solid var(--outline); border-radius:16px; padding:10px 16px; min-width:76px; box-shadow:3px 3px 0 var(--outline); }
+    .stat-val { font-family:'Fredoka One',cursive; font-size:clamp(1.5rem,4.5vw,2rem); color:var(--green); }
+    .stat-lbl { font-size:.72rem; color:#aaa; font-weight:800; text-transform:uppercase; }
+    .result-btns  { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; }
 
     /* ── LEADERBOARD ── */
-    #leaderboard-screen { max-width: 560px; }
-    #leaderboard-screen h2 {
-      font-family: 'Fredoka One', cursive;
-      font-size: clamp(1.8rem,6vw,2.4rem);
-      color: #fff;
-      text-shadow: 3px 3px 0 rgba(0,0,0,.2);
-      margin: 12px 0 6px;
-    }
-    .lb-tabs { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 12px; }
-    .lb-tab {
-      padding: 8px 18px;
-      border-radius: 50px;
-      border: 2px solid rgba(255,255,255,.5);
-      background: rgba(255,255,255,.25);
-      color: #fff;
-      font-weight: 800;
-      font-size: .9rem;
-      cursor: pointer;
-      transition: background .15s;
-    }
-    .lb-tab.active { background: #fff; color: var(--brown); border-color: var(--outline); }
-    .lb-table { background: #fffbe6; border: 3px solid var(--outline); border-radius: 20px; overflow: hidden; width: 100%; box-shadow: 5px 5px 0 var(--outline); }
-    .lb-row { display: grid; grid-template-columns: 46px 1fr 80px 72px; align-items: center; padding: 11px 16px; border-bottom: 2px solid #f0e8d8; font-weight: 800; }
-    .lb-row:last-child { border-bottom: none; }
-    .lb-row.header { background: var(--brown); color: #fff; font-size: .75rem; text-transform: uppercase; letter-spacing: 1px; }
-    .lb-rank { font-family: 'Fredoka One', cursive; font-size: 1.3rem; color: #ccc; }
-    .lb-rank.gold   { color: #ffd700; }
-    .lb-rank.silver { color: #c0c0c0; }
-    .lb-rank.bronze { color: #cd7f32; }
-    .lb-name  { font-size: .95rem; }
-    .lb-score { font-size: .9rem; text-align: right; color: var(--green); }
-    .lb-time  { font-size: .9rem; text-align: right; color: var(--red); }
-    .lb-empty { padding: 28px; text-align: center; color: #bbb; font-size: 1rem; font-weight: 800; }
+    #leaderboard-screen { max-width:580px; }
+    #leaderboard-screen h2 { font-family:'Fredoka One',cursive; font-size:clamp(1.7rem,5.5vw,2.3rem); color:#fff; text-shadow:3px 3px 0 rgba(0,0,0,.2); margin:12px 0 6px; }
+    .lb-tabs { display:flex; gap:6px; flex-wrap:wrap; justify-content:center; margin-bottom:10px; }
+    .lb-tab { padding:7px 14px; border-radius:50px; border:2px solid rgba(255,255,255,.5); background:rgba(255,255,255,.25); color:#fff; font-weight:800; font-size:.82rem; cursor:pointer; }
+    .lb-tab.active { background:#fff; color:var(--brown); border-color:var(--outline); }
+    .lb-table { background:#fffbe6; border:3px solid var(--outline); border-radius:20px; overflow:hidden; width:100%; box-shadow:5px 5px 0 var(--outline); }
+    .lb-row { display:grid; grid-template-columns:44px 36px 1fr 74px 66px; align-items:center; padding:10px 14px; border-bottom:2px solid #f0e8d8; font-weight:800; gap:4px; }
+    .lb-row:last-child { border-bottom:none; }
+    .lb-row.header { background:var(--brown); color:#fff; font-size:.72rem; text-transform:uppercase; letter-spacing:.8px; }
+    .lb-rank  { font-family:'Fredoka One',cursive; font-size:1.2rem; color:#ccc; }
+    .lb-rank.gold{color:#ffd700} .lb-rank.silver{color:#c0c0c0} .lb-rank.bronze{color:#cd7f32}
+    .lb-avatar { width:28px; height:28px; border-radius:50%; border:2px solid var(--outline); object-fit:cover; }
+    .lb-avatar-placeholder { width:28px; height:28px; border-radius:50%; background:#ddd; border:2px solid var(--outline); display:flex; align-items:center; justify-content:center; font-size:.8rem; }
+    .lb-name  { font-size:.88rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .lb-score { font-size:.85rem; text-align:right; color:var(--green); }
+    .lb-time  { font-size:.85rem; text-align:right; color:var(--red); }
+    .lb-empty { padding:28px; text-align:center; color:#bbb; font-size:1rem; font-weight:800; }
+    .lb-loading { padding:28px; text-align:center; color:#bbb; font-size:1rem; }
 
-    .nav { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; justify-content: center; }
+    .nav { display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; justify-content:center; }
 
-    /* ── MOBILE tweaks ── */
-    @media (max-width: 420px) {
-      .hud-val { font-size: 1.3rem; }
-      .btn { padding: 12px 22px; font-size: 1.05rem; }
-      #mole-grid { gap: 8px; padding: 10px; }
+    /* ── SPINNER ── */
+    .spinner { width:40px; height:40px; border:5px solid rgba(255,255,255,.3); border-top-color:#fff; border-radius:50%; animation:spin .8s linear infinite; margin:20px auto; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    @media (max-width:400px) {
+      .hud-val { font-size:1.2rem; }
+      .btn { padding:11px 18px; font-size:.95rem; }
+      #mole-grid { gap:7px; padding:9px; }
     }
   </style>
 </head>
@@ -383,31 +216,96 @@
 
 <div id="main-title">🔨 Whack-a-Mole!</div>
 
-<!-- ═══ START ═══ -->
-<div id="start-screen" class="screen active">
+<!-- user bar -->
+<div id="user-bar">
+  <img id="user-avatar" src="" alt=""/>
+  <span id="user-name-bar"></span>
+  <span id="signout-btn" onclick="signOut()">Sign out</span>
+</div>
+
+<!-- ══════════════ SETUP SCREEN ══════════════ -->
+<div id="setup-screen" class="screen active">
   <div class="card">
-    <h2>Welcome! 🐾</h2>
-    <p>Enter your name and start whacking!</p>
-    <label for="player-name">Your Name</label>
-    <input id="player-name" type="text" placeholder="e.g. SuperWhacker" maxlength="20" autocomplete="off"/>
+    <h2>Firebase Setup Required</h2>
+    <p>To enable Google login and a shared global leaderboard, connect a free Firebase project.</p>
+
+    <div class="setup-step">
+      <div class="setup-step-num">Step 1 — Create a Firebase project</div>
+      <p>Go to <a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a>, click <strong>Add project</strong>, name it <em>whack-a-mole</em>, and follow the prompts.</p>
+    </div>
+    <div class="setup-step">
+      <div class="setup-step-num">Step 2 — Enable Google Auth</div>
+      <p>In your project go to <strong>Authentication → Sign-in method</strong> and enable <strong>Google</strong>.</p>
+    </div>
+    <div class="setup-step">
+      <div class="setup-step-num">Step 3 — Create a Firestore database</div>
+      <p>Go to <strong>Firestore Database → Create database</strong>. Choose <strong>Start in test mode</strong> (you can tighten rules later). Pick any region.</p>
+    </div>
+    <div class="setup-step">
+      <div class="setup-step-num">Step 4 — Register a Web App</div>
+      <p>Go to <strong>Project Settings → General → Your apps</strong> → click the <strong>&lt;/&gt;</strong> web icon. Copy the <code>firebaseConfig</code> object.</p>
+    </div>
+    <div class="setup-step">
+      <div class="setup-step-num">Step 5 — Add your Vercel domain</div>
+      <p>In Firebase go to <strong>Authentication → Settings → Authorized domains</strong> and add your Vercel URL (e.g. <code>whack-a-mole.vercel.app</code>).</p>
+    </div>
+    <div class="setup-step">
+      <div class="setup-step-num">Step 6 — Paste your config below</div>
+      <p>Fill in the fields and click Save. These are saved in your browser only.</p>
+    </div>
+
     <br/>
-    <button class="btn btn-green" onclick="startGame()">▶ Play!</button>
-    <br/><br/>
-    <button class="btn btn-blue" onclick="showScreen('leaderboard-screen'); renderLeaderboard()">🏆 Leaderboard</button>
+    <label>API Key</label>
+    <input type="text" id="cfg-apiKey" placeholder="AIzaSy..." autocomplete="off"/>
+    <label>Auth Domain</label>
+    <input type="text" id="cfg-authDomain" placeholder="your-project.firebaseapp.com" autocomplete="off"/>
+    <label>Project ID</label>
+    <input type="text" id="cfg-projectId" placeholder="your-project-id" autocomplete="off"/>
+    <label>App ID</label>
+    <input type="text" id="cfg-appId" placeholder="1:123456:web:abc..." autocomplete="off"/>
+    <br/>
+    <button class="btn btn-green" onclick="saveConfig()">Save &amp; Connect</button>
   </div>
 </div>
 
-<!-- ═══ LEVEL SELECT ═══ -->
+<!-- ══════════════ LOGIN SCREEN ══════════════ -->
+<div id="login-screen" class="screen">
+  <div class="card">
+    <div style="font-size:3.5rem;margin-bottom:8px">🔨</div>
+    <h2>Welcome!</h2>
+    <p>Sign in to play and compete on the global leaderboard!</p>
+    <button class="btn-google" onclick="signInGoogle()">
+      <svg viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg>
+      Sign in with Google
+    </button>
+    <br/><br/>
+    <div id="login-error" style="color:var(--red);font-weight:800;font-size:.9rem;display:none"></div>
+    <button class="btn btn-white" style="font-size:.8rem;padding:8px 16px" onclick="showSetup()">Change Firebase config</button>
+  </div>
+</div>
+
+<!-- ══════════════ USERNAME SCREEN ══════════════ -->
+<div id="username-screen" class="screen">
+  <div class="card">
+    <div style="font-size:3rem;margin-bottom:8px">🐾</div>
+    <h2>Choose your Game Name!</h2>
+    <p>Pick a fun username that will appear on the leaderboard.</p>
+    <label for="game-username">Your Game Name</label>
+    <input id="game-username" type="text" placeholder="e.g. MoleDestroyer99" maxlength="20" autocomplete="off"/>
+    <button class="btn btn-green" onclick="saveUsername()">Let's Go!</button>
+  </div>
+</div>
+
+<!-- ══════════════ LEVEL SELECT ══════════════ -->
 <div id="level-screen" class="screen">
   <div id="welcome-msg"></div>
   <div class="grid" id="level-grid"></div>
   <div class="nav">
-    <button class="btn btn-yellow" onclick="showScreen('leaderboard-screen'); renderLeaderboard()">🏆 Scores</button>
-    <button class="btn btn-red"    onclick="showScreen('start-screen')">🔙 Change Name</button>
+    <button class="btn btn-yellow" onclick="showScreen('leaderboard-screen');renderLeaderboard()">🏆 Leaderboard</button>
   </div>
 </div>
 
-<!-- ═══ GAME ═══ -->
+<!-- ══════════════ GAME ══════════════ -->
 <div id="game-screen" class="screen">
   <div class="hud">
     <div class="hud-box"><div class="hud-label">Level</div><div class="hud-val" id="level-val">1</div></div>
@@ -417,10 +315,10 @@
   </div>
   <div class="progress-wrap"><div class="progress-bar" id="progress-bar" style="width:0%"></div></div>
   <div id="mole-grid"></div>
-  <div class="nav"><button class="btn btn-red" onclick="quitGame()">❌ Quit</button></div>
+  <div class="nav"><button class="btn btn-red" onclick="quitGame()">Quit</button></div>
 </div>
 
-<!-- ═══ RESULT ═══ -->
+<!-- ══════════════ RESULT ══════════════ -->
 <div id="result-screen" class="screen">
   <div class="card">
     <div class="result-emoji" id="result-emoji">🎉</div>
@@ -435,84 +333,179 @@
   </div>
 </div>
 
-<!-- ═══ LEADERBOARD ═══ -->
+<!-- ══════════════ LEADERBOARD ══════════════ -->
 <div id="leaderboard-screen" class="screen">
-  <h2>🏆 Hall of Fame</h2>
+  <h2>🏆 Global Leaderboard</h2>
   <div class="lb-tabs"  id="lb-tabs"></div>
-  <div class="lb-table" id="lb-table"></div>
+  <div class="lb-table" id="lb-table"><div class="lb-loading"><div class="spinner"></div></div></div>
   <div class="nav">
-    <button class="btn btn-green" onclick="showScreen('level-screen'); buildLevelGrid()">🎮 Levels</button>
-    <button class="btn btn-red"   onclick="showScreen('start-screen')">🏠 Home</button>
+    <button class="btn btn-green" onclick="showScreen('level-screen');buildLevelGrid()">🎮 Levels</button>
   </div>
 </div>
 
-<!-- ═══ COUNTDOWN ═══ -->
+<!-- countdown overlay -->
 <div id="countdown-overlay" class="hidden">
   <div id="countdown-num">3</div>
   <div id="countdown-text">Get Ready!</div>
 </div>
 
-<!-- ═══════════════ SCRIPT ═══════════════ -->
 <script>
-// ── LEVEL CONFIG ──────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════
+//  FIREBASE CONFIG — stored in localStorage after setup
+// ═══════════════════════════════════════════════════════
+let auth = null;
+let db   = null;
+let currentUser = null;
+
+function loadConfig() {
+  try { return JSON.parse(localStorage.getItem('wam_firebase_config') || 'null'); } catch(e){ return null; }
+}
+function saveConfig() {
+  const cfg = {
+    apiKey:     document.getElementById('cfg-apiKey').value.trim(),
+    authDomain: document.getElementById('cfg-authDomain').value.trim(),
+    projectId:  document.getElementById('cfg-projectId').value.trim(),
+    appId:      document.getElementById('cfg-appId').value.trim(),
+  };
+  if (!cfg.apiKey || !cfg.authDomain || !cfg.projectId || !cfg.appId) {
+    alert('Please fill in all four fields.');
+    return;
+  }
+  localStorage.setItem('wam_firebase_config', JSON.stringify(cfg));
+  location.reload();
+}
+function showSetup() { showScreen('setup-screen'); }
+
+// ── INIT ──────────────────────────────────────────────
+function initFirebase(cfg) {
+  try {
+    firebase.initializeApp(cfg);
+    auth = firebase.auth();
+    db   = firebase.firestore();
+    auth.onAuthStateChanged(onAuthStateChanged);
+  } catch(e) {
+    console.error('Firebase init error:', e);
+    showScreen('setup-screen');
+  }
+}
+
+function onAuthStateChanged(user) {
+  if (!user) {
+    hideUserBar();
+    showScreen('login-screen');
+    return;
+  }
+  currentUser = user;
+  showUserBar(user);
+  // Check if they have a game username
+  db.collection('users').doc(user.uid).get().then(doc => {
+    if (doc.exists && doc.data().gameUsername) {
+      gameUsername = doc.data().gameUsername;
+      buildLevelGrid();
+      showScreen('level-screen');
+    } else {
+      showScreen('username-screen');
+    }
+  }).catch(() => showScreen('username-screen'));
+}
+
+// ── AUTH ──────────────────────────────────────────────
+function signInGoogle() {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  auth.signInWithPopup(provider).catch(err => {
+    const el = document.getElementById('login-error');
+    el.style.display = 'block';
+    el.textContent = 'Sign-in failed: ' + err.message;
+  });
+}
+function signOut() {
+  auth.signOut().then(() => { currentUser = null; gameUsername = ''; });
+}
+
+// ── USER BAR ──────────────────────────────────────────
+function showUserBar(user) {
+  const bar = document.getElementById('user-bar');
+  bar.classList.add('visible');
+  const av = document.getElementById('user-avatar');
+  av.src = user.photoURL || '';
+  av.style.display = user.photoURL ? 'block' : 'none';
+  document.getElementById('user-name-bar').textContent = gameUsername || user.displayName || 'Player';
+}
+function hideUserBar() {
+  document.getElementById('user-bar').classList.remove('visible');
+}
+
+// ── USERNAME ──────────────────────────────────────────
+let gameUsername = '';
+function saveUsername() {
+  const val = document.getElementById('game-username').value.trim();
+  if (!val) { alert('Please enter a game name!'); return; }
+  if (val.length < 2) { alert('Name must be at least 2 characters.'); return; }
+  gameUsername = val;
+  db.collection('users').doc(currentUser.uid).set({
+    gameUsername: val,
+    displayName:  currentUser.displayName,
+    photoURL:     currentUser.photoURL || '',
+    updatedAt:    firebase.firestore.FieldValue.serverTimestamp()
+  }, { merge: true }).then(() => {
+    showUserBar(currentUser);
+    buildLevelGrid();
+    showScreen('level-screen');
+  });
+}
+
+// ══════════════════════════════════════════════════════
+//  LEVEL DEFINITIONS  (10 levels)
+// ══════════════════════════════════════════════════════
 const LEVELS = [
-  { id:1, name:'Rookie',  emoji:'🟢', holes:4, duration:30, target:8,  moleSpeed:1200, cols:2 },
-  { id:2, name:'Rookie+', emoji:'🔵', holes:6, duration:30, target:12, moleSpeed:900,  cols:3 },
-  { id:3, name:'Pro',     emoji:'🟠', holes:6, duration:40, target:18, moleSpeed:700,  cols:3 },
-  { id:4, name:'Expert',  emoji:'🔴', holes:9, duration:45, target:24, moleSpeed:550,  cols:3 },
-  { id:5, name:'Master',  emoji:'🟣', holes:9, duration:50, target:30, moleSpeed:400,  cols:3 },
+  { id:1,  name:'Rookie',    emoji:'🟢', holes:4,  duration:30, target:8,  moleSpeed:1200, cols:2 },
+  { id:2,  name:'Beginner',  emoji:'🔵', holes:4,  duration:30, target:12, moleSpeed:1000, cols:2 },
+  { id:3,  name:'Easy',      emoji:'🟡', holes:6,  duration:35, target:16, moleSpeed:850,  cols:3 },
+  { id:4,  name:'Normal',    emoji:'🟠', holes:6,  duration:35, target:20, moleSpeed:700,  cols:3 },
+  { id:5,  name:'Pro',       emoji:'🔴', holes:6,  duration:40, target:25, moleSpeed:580,  cols:3 },
+  { id:6,  name:'Pro+',      emoji:'🟣', holes:9,  duration:40, target:28, moleSpeed:470,  cols:3 },
+  { id:7,  name:'Expert',    emoji:'💜', holes:9,  duration:45, target:34, moleSpeed:380,  cols:3 },
+  { id:8,  name:'Expert+',   emoji:'❤️', holes:9,  duration:45, target:40, moleSpeed:300,  cols:3 },
+  { id:9,  name:'Master',    emoji:'🖤', holes:12, duration:50, target:48, moleSpeed:240,  cols:4 },
+  { id:10, name:'LEGEND',    emoji:'💀', holes:12, duration:55, target:56, moleSpeed:185,  cols:4 },
 ];
 
-// ── MOLE COLOURS ──────────────────────────────────────────────
+// ── MOLE SKINS ────────────────────────────────────────
 const MOLE_SKINS = [
   { body:'#c8845a', belly:'#f0c090', nose:'#e87090', ear:'#e8a0a0' },
   { body:'#8d6e8a', belly:'#d4b0d0', nose:'#e870a0', ear:'#dda0cc' },
   { body:'#6a9e6a', belly:'#b0e0b0', nose:'#60c060', ear:'#90d090' },
   { body:'#7a9ec8', belly:'#b8d4f0', nose:'#5090e0', ear:'#90b8e8' },
 ];
-
-function moleSVG(idx) {
-  const s = MOLE_SKINS[idx % MOLE_SKINS.length];
+function moleSVG(i) {
+  const s = MOLE_SKINS[i % MOLE_SKINS.length];
   return `<svg viewBox="0 0 100 110" xmlns="http://www.w3.org/2000/svg">
-    <!-- ears -->
     <ellipse cx="24" cy="32" rx="14" ry="18" fill="${s.body}" stroke="#2d1a0e" stroke-width="3"/>
     <ellipse cx="24" cy="32" rx="8"  ry="12" fill="${s.ear}"/>
     <ellipse cx="76" cy="32" rx="14" ry="18" fill="${s.body}" stroke="#2d1a0e" stroke-width="3"/>
     <ellipse cx="76" cy="32" rx="8"  ry="12" fill="${s.ear}"/>
-    <!-- body -->
     <ellipse cx="50" cy="85" rx="36" ry="30" fill="${s.body}" stroke="#2d1a0e" stroke-width="3"/>
-    <!-- belly -->
     <ellipse cx="50" cy="88" rx="22" ry="20" fill="${s.belly}"/>
-    <!-- head -->
     <ellipse cx="50" cy="52" rx="34" ry="32" fill="${s.body}" stroke="#2d1a0e" stroke-width="3"/>
-    <!-- snout bg -->
     <ellipse cx="50" cy="62" rx="20" ry="16" fill="${s.belly}" stroke="#2d1a0e" stroke-width="2"/>
-    <!-- nose -->
-    <ellipse cx="50" cy="56" rx="8" ry="6" fill="${s.nose}" stroke="#2d1a0e" stroke-width="2"/>
-    <!-- nostrils -->
-    <ellipse cx="47" cy="56" rx="2" ry="1.5" fill="#2d1a0e" opacity=".5"/>
-    <ellipse cx="53" cy="56" rx="2" ry="1.5" fill="#2d1a0e" opacity=".5"/>
-    <!-- mouth -->
+    <ellipse cx="50" cy="56" rx="8"  ry="6"  fill="${s.nose}"  stroke="#2d1a0e" stroke-width="2"/>
+    <ellipse cx="47" cy="56" rx="2"  ry="1.5" fill="#2d1a0e" opacity=".5"/>
+    <ellipse cx="53" cy="56" rx="2"  ry="1.5" fill="#2d1a0e" opacity=".5"/>
     <path d="M42 65 Q50 72 58 65" stroke="#2d1a0e" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-    <!-- eyes white -->
     <ellipse cx="36" cy="44" rx="9" ry="10" fill="white" stroke="#2d1a0e" stroke-width="2.5"/>
     <ellipse cx="64" cy="44" rx="9" ry="10" fill="white" stroke="#2d1a0e" stroke-width="2.5"/>
-    <!-- pupils -->
-    <circle cx="37" cy="44" r="5.5" fill="#2d1a0e"/>
-    <circle cx="65" cy="44" r="5.5" fill="#2d1a0e"/>
-    <!-- eye shine -->
-    <circle cx="39" cy="41" r="2.5" fill="white"/>
-    <circle cx="67" cy="41" r="2.5" fill="white"/>
-    <!-- whiskers -->
+    <circle  cx="37" cy="44" r="5.5" fill="#2d1a0e"/>
+    <circle  cx="65" cy="44" r="5.5" fill="#2d1a0e"/>
+    <circle  cx="39" cy="41" r="2.5" fill="white"/>
+    <circle  cx="67" cy="41" r="2.5" fill="white"/>
     <line x1="30" y1="62" x2="8"  y2="57" stroke="#2d1a0e" stroke-width="2" stroke-linecap="round"/>
     <line x1="30" y1="66" x2="8"  y2="68" stroke="#2d1a0e" stroke-width="2" stroke-linecap="round"/>
     <line x1="70" y1="62" x2="92" y2="57" stroke="#2d1a0e" stroke-width="2" stroke-linecap="round"/>
     <line x1="70" y1="66" x2="92" y2="68" stroke="#2d1a0e" stroke-width="2" stroke-linecap="round"/>
   </svg>`;
 }
-
-function moleDazedSVG(idx) {
-  const s = MOLE_SKINS[idx % MOLE_SKINS.length];
+function moleDazedSVG(i) {
+  const s = MOLE_SKINS[i % MOLE_SKINS.length];
   return `<svg viewBox="0 0 100 110" xmlns="http://www.w3.org/2000/svg">
     <ellipse cx="24" cy="32" rx="14" ry="18" fill="${s.body}" stroke="#2d1a0e" stroke-width="3"/>
     <ellipse cx="24" cy="32" rx="8"  ry="12" fill="${s.ear}"/>
@@ -522,354 +515,308 @@ function moleDazedSVG(idx) {
     <ellipse cx="50" cy="88" rx="22" ry="20" fill="${s.belly}"/>
     <ellipse cx="50" cy="52" rx="34" ry="32" fill="${s.body}" stroke="#2d1a0e" stroke-width="3"/>
     <ellipse cx="50" cy="62" rx="20" ry="16" fill="${s.belly}" stroke="#2d1a0e" stroke-width="2"/>
-    <ellipse cx="50" cy="56" rx="8"  ry="6"  fill="${s.nose}" stroke="#2d1a0e" stroke-width="2"/>
-    <!-- dazed X eyes -->
+    <ellipse cx="50" cy="56" rx="8"  ry="6"  fill="${s.nose}"  stroke="#2d1a0e" stroke-width="2"/>
     <ellipse cx="36" cy="44" rx="9" ry="10" fill="white" stroke="#2d1a0e" stroke-width="2.5"/>
     <ellipse cx="64" cy="44" rx="9" ry="10" fill="white" stroke="#2d1a0e" stroke-width="2.5"/>
     <line x1="30" y1="38" x2="42" y2="50" stroke="#2d1a0e" stroke-width="3" stroke-linecap="round"/>
     <line x1="42" y1="38" x2="30" y2="50" stroke="#2d1a0e" stroke-width="3" stroke-linecap="round"/>
     <line x1="58" y1="38" x2="70" y2="50" stroke="#2d1a0e" stroke-width="3" stroke-linecap="round"/>
     <line x1="70" y1="38" x2="58" y2="50" stroke="#2d1a0e" stroke-width="3" stroke-linecap="round"/>
-    <!-- wavy mouth -->
     <path d="M40 67 Q44 63 48 67 Q52 71 56 67 Q60 63 64 67" stroke="#2d1a0e" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-    <!-- stars around head -->
     <text x="10" y="20" font-size="14" opacity=".9">&#x2B50;</text>
     <text x="78" y="18" font-size="14" opacity=".9">&#x2B50;</text>
     <text x="46" y="10" font-size="12" opacity=".8">&#x2B50;</text>
   </svg>`;
 }
 
-// ── WHACK BURST WORDS ────────────────────────────────────────
-const BURST_WORDS = ['POW!','WHACK!','BAM!','ZAP!','BONK!','SMACK!'];
+// ── BURST FX ──────────────────────────────────────────
+const BURST_WORDS  = ['POW!','WHACK!','BAM!','ZAP!','BONK!','SMACK!'];
 const BURST_COLORS = ['#ff3b30','#ff9500','#ffd000','#34c759','#007aff','#af52de'];
-
-function showWhackBurst(x, y, moleIdx) {
-  const word  = BURST_WORDS[Math.floor(Math.random() * BURST_WORDS.length)];
-  const color = BURST_COLORS[Math.floor(Math.random() * BURST_COLORS.length)];
-  const el    = document.createElement('div');
+function showWhackBurst(x, y) {
+  const word  = BURST_WORDS [Math.floor(Math.random()*BURST_WORDS.length)];
+  const color = BURST_COLORS[Math.floor(Math.random()*BURST_COLORS.length)];
+  const el = document.createElement('div');
   el.className = 'whack-burst';
-  el.style.left = x + 'px';
-  el.style.top  = y + 'px';
+  el.style.left = x+'px'; el.style.top = y+'px';
   el.innerHTML = `<svg viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg">
-    <!-- spiky burst background -->
     <polygon points="70,4 82,42 118,28 96,58 136,66 102,82 120,116 84,100 78,138 62,102 28,120 44,86 6,72 44,60 24,26 60,44"
              fill="${color}" stroke="#2d1a0e" stroke-width="3" stroke-linejoin="round"/>
-    <text x="70" y="79" font-family="Fredoka One,cursive" font-size="22"
-          fill="white" stroke="#2d1a0e" stroke-width="3" paint-order="stroke"
-          text-anchor="middle" dominant-baseline="middle">${word}</text>
+    <text x="70" y="79" font-family="Fredoka One,cursive" font-size="22" fill="white"
+          stroke="#2d1a0e" stroke-width="3" paint-order="stroke" text-anchor="middle" dominant-baseline="middle">${word}</text>
   </svg>`;
   document.body.appendChild(el);
-
-  // screen colour flash
   const flash = document.createElement('div');
-  flash.className = 'screen-flash';
-  flash.style.background = color;
+  flash.className = 'screen-flash'; flash.style.background = color;
   document.body.appendChild(flash);
-
   setTimeout(() => { el.remove(); flash.remove(); }, 560);
 }
 
-// ── STATE ────────────────────────────────────────────────────
-let playerName   = '';
+// ── STATE ─────────────────────────────────────────────
 let currentLevel = null;
-let score = 0, hits = 0, misses = 0;
-let timeLeft = 0;
-let gameTimer  = null;
-let moleTimers = [];
-let gameActive = false;
+let score=0, hits=0, misses=0, timeLeft=0;
+let gameTimer=null, moleTimers=[], gameActive=false;
 
-function loadProgress()    { try { return JSON.parse(localStorage.getItem('wam_prog') || '{}'); } catch(e){ return {}; } }
-function saveProgress(p)   { localStorage.setItem('wam_prog', JSON.stringify(p)); }
-function loadLeaderboard() { try { return JSON.parse(localStorage.getItem('wam_lb')   || '{}'); } catch(e){ return {}; } }
-function saveLeaderboard(l){ localStorage.setItem('wam_lb',   JSON.stringify(l)); }
+function loadProgress()  { try { return JSON.parse(localStorage.getItem('wam_prog')||'{}'); }catch(e){return{};} }
+function saveProgress(p) { localStorage.setItem('wam_prog', JSON.stringify(p)); }
 
-// ── SCREENS ──────────────────────────────────────────────────
+// ── SCREENS ───────────────────────────────────────────
 function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
 }
 
-// ── START ────────────────────────────────────────────────────
-function startGame() {
-  playerName = document.getElementById('player-name').value.trim();
-  if (!playerName) { alert('Please enter your name!'); return; }
-  document.getElementById('welcome-msg').textContent = 'Hi ' + playerName + '! Choose a level 👇';
-  buildLevelGrid();
-  showScreen('level-screen');
-}
-
-document.getElementById('player-name').addEventListener('keydown', e => {
-  if (e.key === 'Enter') startGame();
-});
-
-// ── LEVEL GRID ───────────────────────────────────────────────
+// ── LEVEL GRID ────────────────────────────────────────
 function buildLevelGrid() {
   const progress = loadProgress();
+  document.getElementById('welcome-msg').textContent = 'Hi '+gameUsername+'! Choose a level';
   const grid = document.getElementById('level-grid');
   grid.innerHTML = '';
   LEVELS.forEach((lv, idx) => {
-    const unlocked = idx === 0 || progress[idx];
+    const unlocked = idx===0 || progress[idx];
     const complete  = !!progress[lv.id];
     const div = document.createElement('div');
-    div.className = 'level-btn lv-' + lv.id + (unlocked ? '' : ' locked') + (complete ? ' complete' : '');
-    div.innerHTML = (unlocked ? '' : '<div style="font-size:1.5rem">🔒</div>') +
-      '<div class="lv-num">' + lv.emoji + ' ' + lv.id + '</div>' +
-      '<div class="lv-name">' + lv.name + '</div>' +
-      '<div style="font-size:.95rem;margin-top:3px">' + (complete ? '⭐' : '') + '</div>' +
-      '<div style="font-size:.7rem;color:#aaa;font-weight:800;margin-top:3px">' + lv.holes + ' holes · ' + lv.duration + 's</div>';
-    if (unlocked) div.onclick = () => launchLevel(lv);
+    div.className = 'level-btn lv-'+lv.id+(unlocked?'':' locked')+(complete?' complete':'');
+    div.innerHTML =
+      (unlocked?'':'<div style="font-size:1.3rem">🔒</div>')+
+      '<div class="lv-num">'+lv.emoji+' '+lv.id+'</div>'+
+      '<div class="lv-name">'+lv.name+'</div>'+
+      '<div style="font-size:.85rem;margin-top:2px">'+(complete?'⭐':'')+'</div>'+
+      '<div style="font-size:.66rem;color:#aaa;font-weight:800;margin-top:2px">'+lv.holes+' holes&nbsp;'+lv.duration+'s</div>';
+    if (unlocked) div.onclick = ()=>launchLevel(lv);
     grid.appendChild(div);
   });
 }
 
-// ── LAUNCH LEVEL ─────────────────────────────────────────────
+// ── LAUNCH LEVEL ──────────────────────────────────────
 function launchLevel(lv) {
-  currentLevel = lv;
-  score = hits = misses = 0;
+  currentLevel=lv; score=hits=misses=0;
   buildGrid(lv);
   document.getElementById('level-val').textContent  = lv.id;
   document.getElementById('score-val').textContent  = 0;
   document.getElementById('target-val').textContent = lv.target;
   document.getElementById('timer-val').textContent  = lv.duration;
   document.getElementById('timer-val').style.color  = 'var(--red)';
-  document.getElementById('progress-bar').style.width = '0%';
+  document.getElementById('progress-bar').style.width='0%';
   showScreen('game-screen');
-  startCountdown(() => beginPlay(lv));
+  startCountdown(()=>beginPlay(lv));
 }
 
-// ── BUILD HOLE GRID ───────────────────────────────────────────
+// ── BUILD GRID ────────────────────────────────────────
 function buildGrid(lv) {
   const grid = document.getElementById('mole-grid');
-  grid.style.gridTemplateColumns = 'repeat(' + lv.cols + ', 1fr)';
+  grid.style.gridTemplateColumns = 'repeat('+lv.cols+',1fr)';
   grid.innerHTML = '';
-  for (let i = 0; i < lv.holes; i++) {
+  for (let i=0;i<lv.holes;i++) {
     const wrap = document.createElement('div');
-    wrap.className = 'hole-wrap';
     wrap.innerHTML =
-      '<div class="hole" id="hole-' + i + '">' +
-        '<div class="dirt-mound"><div class="hole-center"></div></div>' +
-        '<div class="mole" id="mole-' + i + '">' + moleSVG(i) + '</div>' +
+      '<div class="hole" id="hole-'+i+'">'+
+        '<div class="dirt-mound"><div class="hole-center"></div></div>'+
+        '<div class="mole" id="mole-'+i+'">'+moleSVG(i)+'</div>'+
       '</div>';
     grid.appendChild(wrap);
-
-    // attach whack handler (touch + click)
-    const moleEl = wrap.querySelector('.mole');
-    moleEl.addEventListener('pointerdown', e => { e.preventDefault(); whackMole(e, i); });
+    wrap.querySelector('.mole').addEventListener('pointerdown',e=>{e.preventDefault();whackMole(e,i);});
   }
 }
 
-// ── COUNTDOWN ────────────────────────────────────────────────
+// ── COUNTDOWN ─────────────────────────────────────────
 function startCountdown(cb) {
-  const overlay = document.getElementById('countdown-overlay');
-  const numEl   = document.getElementById('countdown-num');
-  const txtEl   = document.getElementById('countdown-text');
+  const overlay=document.getElementById('countdown-overlay');
+  const numEl=document.getElementById('countdown-num');
+  const txtEl=document.getElementById('countdown-text');
   overlay.classList.remove('hidden');
-  let n = 3;
-  numEl.textContent = n;
-  reAnimate(numEl);
-  const tick = setInterval(() => {
+  let n=3; numEl.textContent=n; reAnim(numEl);
+  const tick=setInterval(()=>{
     n--;
-    if (n === 0) {
-      numEl.textContent = 'GO!';
-      txtEl.textContent = 'Whack those moles!';
-      reAnimate(numEl);
-      setTimeout(() => { overlay.classList.add('hidden'); clearInterval(tick); cb(); }, 600);
-    } else {
-      numEl.textContent = n;
-      reAnimate(numEl);
-    }
-  }, 800);
+    if (n===0) {
+      numEl.textContent='GO!'; txtEl.textContent='Whack those moles!'; reAnim(numEl);
+      setTimeout(()=>{overlay.classList.add('hidden');clearInterval(tick);cb();},600);
+    } else { numEl.textContent=n; reAnim(numEl); }
+  },800);
 }
-function reAnimate(el) {
-  el.style.animation = 'none';
-  void el.offsetWidth;
-  el.style.animation = 'cpop .5s ease';
-}
+function reAnim(el){el.style.animation='none';void el.offsetWidth;el.style.animation='cpop .5s ease';}
 
-// ── BEGIN PLAY ────────────────────────────────────────────────
+// ── BEGIN PLAY ────────────────────────────────────────
 function beginPlay(lv) {
-  gameActive = true;
-  timeLeft   = lv.duration;
-  moleTimers = [];
-  gameTimer  = setInterval(() => {
+  gameActive=true; timeLeft=lv.duration; moleTimers=[];
+  gameTimer=setInterval(()=>{
     timeLeft--;
-    document.getElementById('timer-val').textContent = timeLeft;
-    if (timeLeft <= 5) document.getElementById('timer-val').style.color = '#ff3b30';
-    if (timeLeft <= 0) endLevel(false);
-  }, 1000);
+    document.getElementById('timer-val').textContent=timeLeft;
+    if (timeLeft<=0) endLevel(false);
+  },1000);
   scheduleMoles(lv);
 }
 
-// ── MOLE SCHEDULER ────────────────────────────────────────────
+// ── MOLE SCHEDULER ────────────────────────────────────
 function scheduleMoles(lv) {
   if (!gameActive) return;
-  const up    = Array.from(document.querySelectorAll('.mole.up')).map(m => +m.id.replace('mole-',''));
-  const avail = [];
-  for (let i = 0; i < lv.holes; i++) { if (!up.includes(i)) avail.push(i); }
-  if (avail.length) {
-    const idx = avail[Math.floor(Math.random() * avail.length)];
-    popMole(idx, lv);
-  }
-  const t = setTimeout(() => scheduleMoles(lv), lv.moleSpeed * (0.55 + Math.random() * 0.75));
+  const up=Array.from(document.querySelectorAll('.mole.up')).map(m=>+m.id.replace('mole-',''));
+  const avail=[];
+  for(let i=0;i<lv.holes;i++){if(!up.includes(i))avail.push(i);}
+  if (avail.length) popMole(avail[Math.floor(Math.random()*avail.length)],lv);
+  const t=setTimeout(()=>scheduleMoles(lv),lv.moleSpeed*(0.5+Math.random()*0.8));
   moleTimers.push(t);
 }
-
-function popMole(idx, lv) {
-  const mole = document.getElementById('mole-' + idx);
-  if (!mole || mole.classList.contains('up')) return;
+function popMole(idx,lv) {
+  const mole=document.getElementById('mole-'+idx);
+  if(!mole||mole.classList.contains('up'))return;
   mole.classList.add('up');
-  const t = setTimeout(() => {
-    if (mole.classList.contains('up') && !mole.classList.contains('whacked')) {
-      mole.classList.remove('up');
-    }
-  }, lv.moleSpeed * (0.85 + Math.random() * 0.45));
+  const t=setTimeout(()=>{if(mole.classList.contains('up')&&!mole.classList.contains('whacked'))mole.classList.remove('up');},lv.moleSpeed*(0.8+Math.random()*0.5));
   moleTimers.push(t);
 }
 
-// ── WHACK ─────────────────────────────────────────────────────
-function whackMole(e, idx) {
-  if (!gameActive) return;
-  const mole = document.getElementById('mole-' + idx);
-  if (!mole || !mole.classList.contains('up')) return;
-
-  // swap to dazed face then hide
-  mole.innerHTML = moleDazedSVG(idx);
-  mole.classList.add('whacked');
-  mole.classList.remove('up');
-
-  hits++;
-  score += 10;
-  document.getElementById('score-val').textContent = score;
-  document.getElementById('progress-bar').style.width = Math.min((hits / currentLevel.target) * 100, 100) + '%';
-
-  // burst effect at tap/click position
-  const cx = e.clientX || (e.touches && e.touches[0] ? e.touches[0].clientX : window.innerWidth / 2);
-  const cy = e.clientY || (e.touches && e.touches[0] ? e.touches[0].clientY : window.innerHeight / 2);
-  showWhackBurst(cx, cy, idx);
-
-  // reset mole face after animation
-  setTimeout(() => {
-    if (mole) { mole.classList.remove('whacked'); mole.innerHTML = moleSVG(idx); }
-  }, 400);
-
-  if (hits >= currentLevel.target) endLevel(true);
+// ── WHACK ─────────────────────────────────────────────
+function whackMole(e,idx) {
+  if(!gameActive)return;
+  const mole=document.getElementById('mole-'+idx);
+  if(!mole||!mole.classList.contains('up'))return;
+  mole.innerHTML=moleDazedSVG(idx);
+  mole.classList.add('whacked'); mole.classList.remove('up');
+  hits++; score+=10;
+  document.getElementById('score-val').textContent=score;
+  document.getElementById('progress-bar').style.width=Math.min(hits/currentLevel.target*100,100)+'%';
+  const cx=e.clientX||(e.touches&&e.touches[0]?e.touches[0].clientX:window.innerWidth/2);
+  const cy=e.clientY||(e.touches&&e.touches[0]?e.touches[0].clientY:window.innerHeight/2);
+  showWhackBurst(cx,cy);
+  setTimeout(()=>{if(mole){mole.classList.remove('whacked');mole.innerHTML=moleSVG(idx);}},400);
+  if(hits>=currentLevel.target) endLevel(true);
 }
 
-// ── END LEVEL ─────────────────────────────────────────────────
+// ── END LEVEL ─────────────────────────────────────────
 function endLevel(won) {
-  if (!gameActive) return;
-  gameActive = false;
-  clearInterval(gameTimer);
-  moleTimers.forEach(clearTimeout);
-  moleTimers = [];
-  document.querySelectorAll('.mole').forEach(m => m.classList.remove('up','whacked'));
-
-  const timeTaken = currentLevel.duration - timeLeft;
-  const accuracy  = (hits + misses) > 0 ? Math.round(hits / (hits + misses) * 100) : 100;
-
+  if(!gameActive)return;
+  gameActive=false; clearInterval(gameTimer); moleTimers.forEach(clearTimeout); moleTimers=[];
+  document.querySelectorAll('.mole').forEach(m=>m.classList.remove('up','whacked'));
+  const timeTaken=currentLevel.duration-timeLeft;
+  const accuracy=(hits+misses)>0?Math.round(hits/(hits+misses)*100):100;
   if (won) {
-    const prog = loadProgress();
-    prog[currentLevel.id] = true;
-    saveProgress(prog);
-    addToLeaderboard(currentLevel.id, playerName, score, timeTaken, accuracy);
+    const prog=loadProgress(); prog[currentLevel.id]=true; saveProgress(prog);
+    saveScoreToFirestore(currentLevel.id, score, timeTaken, accuracy);
   }
-  showResultScreen(won, timeTaken, accuracy);
+  showResultScreen(won,timeTaken,accuracy);
 }
-
 function quitGame() {
-  gameActive = false;
-  clearInterval(gameTimer);
-  moleTimers.forEach(clearTimeout);
-  moleTimers = [];
-  buildLevelGrid();
-  showScreen('level-screen');
+  gameActive=false; clearInterval(gameTimer); moleTimers.forEach(clearTimeout); moleTimers=[];
+  buildLevelGrid(); showScreen('level-screen');
 }
 
-// ── RESULT SCREEN ─────────────────────────────────────────────
-function showResultScreen(won, timeTaken, accuracy) {
-  const lv   = currentLevel;
-  const next = LEVELS.find(l => l.id === lv.id + 1);
+// ── SAVE SCORE TO FIRESTORE ───────────────────────────
+function saveScoreToFirestore(levelId, sc, time, accuracy) {
+  if (!db||!currentUser) return;
+  const ref = db.collection('scores')
+                .where('userId','==',currentUser.uid)
+                .where('levelId','==',levelId);
+  ref.get().then(snap => {
+    const existing = snap.docs[0];
+    const data = {
+      userId:       currentUser.uid,
+      gameUsername: gameUsername,
+      photoURL:     currentUser.photoURL||'',
+      levelId:      levelId,
+      score:        sc,
+      time:         time,
+      accuracy:     accuracy,
+      timestamp:    firebase.firestore.FieldValue.serverTimestamp()
+    };
+    if (existing) {
+      const old = existing.data();
+      // only update if new score is better (higher score, or same score but faster)
+      if (sc > old.score || (sc===old.score && time < old.time)) {
+        existing.ref.update(data);
+      }
+    } else {
+      db.collection('scores').add(data);
+    }
+  }).catch(err => console.warn('Score save error:', err));
+}
 
-  document.getElementById('result-emoji').textContent = won ? '🎉' : '😔';
-  document.getElementById('result-title').textContent = won ? 'Level Complete!' : "Time's Up!";
+// ── RESULT SCREEN ─────────────────────────────────────
+function showResultScreen(won,timeTaken,accuracy) {
+  const lv=currentLevel;
+  const next=LEVELS.find(l=>l.id===lv.id+1);
+  document.getElementById('result-emoji').textContent = won?'🎉':'😔';
+  document.getElementById('result-title').textContent = won?'Level Complete!':"Time's Up!";
   document.getElementById('result-sub').textContent   = won
-    ? 'Amazing! You beat Level ' + lv.id + ' – ' + lv.name + '!'
-    : 'You needed ' + lv.target + ' moles but got ' + hits + '. Try again!';
+    ?'Amazing! You beat Level '+lv.id+' - '+lv.name+'!'
+    :'You needed '+lv.target+' moles but got '+hits+'. Try again!';
   document.getElementById('res-score').textContent = score;
-  document.getElementById('res-time').textContent  = timeTaken + 's';
-  document.getElementById('res-acc').textContent   = accuracy + '%';
-
-  const btns = document.getElementById('result-btns');
-  btns.innerHTML = '';
-
-  if (won && next) {
-    const b = document.createElement('button');
-    b.className = 'btn btn-green';
-    b.textContent = '▶ Level ' + next.id;
-    b.onclick = () => launchLevel(next);
-    btns.appendChild(b);
-  }
-  addBtn(btns, 'btn-yellow', '🔄 Retry', () => launchLevel(lv));
-  addBtn(btns, 'btn-blue',   '📋 Levels', () => { buildLevelGrid(); showScreen('level-screen'); });
-  addBtn(btns, 'btn-purple', '🏆 Scores', () => { showScreen('leaderboard-screen'); renderLeaderboard(lv.id); });
+  document.getElementById('res-time').textContent  = timeTaken+'s';
+  document.getElementById('res-acc').textContent   = accuracy+'%';
+  const btns=document.getElementById('result-btns');
+  btns.innerHTML='';
+  if (won&&next) addBtn(btns,'btn-green','Level '+next.id+' ▶',()=>launchLevel(next));
+  addBtn(btns,'btn-yellow','Retry',()=>launchLevel(lv));
+  addBtn(btns,'btn-blue','Levels',()=>{buildLevelGrid();showScreen('level-screen');});
+  addBtn(btns,'btn-purple','Leaderboard',()=>{showScreen('leaderboard-screen');renderLeaderboard(lv.id);});
   showScreen('result-screen');
 }
-function addBtn(parent, cls, txt, fn) {
-  const b = document.createElement('button');
-  b.className = 'btn ' + cls;
-  b.textContent = txt;
-  b.onclick = fn;
-  parent.appendChild(b);
-}
+function addBtn(p,cls,txt,fn){const b=document.createElement('button');b.className='btn '+cls;b.textContent=txt;b.onclick=fn;p.appendChild(b);}
 
-// ── LEADERBOARD ───────────────────────────────────────────────
-function addToLeaderboard(lvId, name, sc, time, acc) {
-  const lb = loadLeaderboard();
-  if (!lb[lvId]) lb[lvId] = [];
-  lb[lvId].push({ name, score: sc, time, acc, date: Date.now() });
-  lb[lvId].sort((a,b) => b.score - a.score || a.time - b.time);
-  lb[lvId] = lb[lvId].slice(0, 20);
-  saveLeaderboard(lb);
-}
-
-let lbTab = 1;
+// ── LEADERBOARD ───────────────────────────────────────
+let lbTab=1;
 function renderLeaderboard(forLevel) {
-  if (forLevel) lbTab = forLevel;
-  const lb    = loadLeaderboard();
-  const tabs  = document.getElementById('lb-tabs');
-  const table = document.getElementById('lb-table');
-  tabs.innerHTML = '';
-  LEVELS.forEach(lv => {
-    const t = document.createElement('div');
-    t.className = 'lb-tab' + (lv.id === lbTab ? ' active' : '');
-    t.textContent = lv.emoji + ' Lv ' + lv.id;
-    t.onclick = () => renderLeaderboard(lv.id);
+  if(forLevel) lbTab=forLevel;
+  const tabs=document.getElementById('lb-tabs');
+  const table=document.getElementById('lb-table');
+  tabs.innerHTML='';
+  LEVELS.forEach(lv=>{
+    const t=document.createElement('div');
+    t.className='lb-tab'+(lv.id===lbTab?' active':'');
+    t.textContent=lv.emoji+' '+lv.id;
+    t.onclick=()=>renderLeaderboard(lv.id);
     tabs.appendChild(t);
   });
-  const entries = lb[lbTab] || [];
-  table.innerHTML = '';
-  if (!entries.length) {
-    table.innerHTML = '<div class="lb-empty">No scores yet!<br/>Be the first! 🐾</div>';
-    return;
-  }
-  const hdr = document.createElement('div');
-  hdr.className = 'lb-row header';
-  hdr.innerHTML = '<span>#</span><span>Player</span><span style="text-align:right">Score</span><span style="text-align:right">Time</span>';
-  table.appendChild(hdr);
-  entries.forEach((e, i) => {
-    const row = document.createElement('div');
-    row.className = 'lb-row';
-    if (e.name === playerName) row.style.background = '#fff8dc';
-    const medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
-    const rnkCls = i===0?'gold':i===1?'silver':i===2?'bronze':'';
-    row.innerHTML =
-      '<span class="lb-rank ' + rnkCls + '">' + (medal || (i+1)) + '</span>' +
-      '<span class="lb-name">' + e.name + '</span>' +
-      '<span class="lb-score">' + e.score + ' pts</span>' +
-      '<span class="lb-time">'  + e.time  + 's</span>';
-    table.appendChild(row);
-  });
+  table.innerHTML='<div class="lb-loading"><div class="spinner"></div></div>';
+  if(!db){table.innerHTML='<div class="lb-empty">Connect Firebase to see the global leaderboard!</div>';return;}
+  db.collection('scores').where('levelId','==',lbTab)
+    .orderBy('score','desc').orderBy('time','asc').limit(20)
+    .get().then(snap=>{
+      table.innerHTML='';
+      if(snap.empty){table.innerHTML='<div class="lb-empty">No scores yet!<br/>Be the first!</div>';return;}
+      const hdr=document.createElement('div');
+      hdr.className='lb-row header';
+      hdr.innerHTML='<span>#</span><span></span><span>Player</span><span style="text-align:right">Score</span><span style="text-align:right">Time</span>';
+      table.appendChild(hdr);
+      snap.docs.forEach((doc,i)=>{
+        const e=doc.data();
+        const row=document.createElement('div');
+        row.className='lb-row';
+        if(currentUser&&e.userId===currentUser.uid) row.style.background='#fff8dc';
+        const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
+        const rnkCls=i===0?'gold':i===1?'silver':i===2?'bronze':'';
+        const avatarHtml=e.photoURL
+          ?'<img class="lb-avatar" src="'+e.photoURL+'" alt=""/>'
+          :'<div class="lb-avatar-placeholder">👤</div>';
+        row.innerHTML=
+          '<span class="lb-rank '+rnkCls+'">'+(medal||(i+1))+'</span>'+
+          avatarHtml+
+          '<span class="lb-name">'+e.gameUsername+'</span>'+
+          '<span class="lb-score">'+e.score+' pts</span>'+
+          '<span class="lb-time">'+e.time+'s</span>';
+        table.appendChild(row);
+      });
+    }).catch(err=>{
+      table.innerHTML='<div class="lb-empty">Error loading scores.<br/>'+err.message+'</div>';
+    });
 }
+
+// ══════════════════════════════════════════════════════
+//  BOOT
+// ══════════════════════════════════════════════════════
+(function boot() {
+  const cfg = loadConfig();
+  if (!cfg) {
+    showScreen('setup-screen');
+  } else {
+    // Pre-fill setup form in case they want to edit
+    document.getElementById('cfg-apiKey').value     = cfg.apiKey     || '';
+    document.getElementById('cfg-authDomain').value = cfg.authDomain || '';
+    document.getElementById('cfg-projectId').value  = cfg.projectId  || '';
+    document.getElementById('cfg-appId').value      = cfg.appId      || '';
+    showScreen('login-screen');
+    initFirebase(cfg);
+  }
+})();
 </script>
 </body>
 </html>
