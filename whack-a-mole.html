@@ -108,12 +108,6 @@
     #user-name-bar { font-weight:800; color:var(--brown); font-size:.95rem; }
     #signout-btn { font-size:.75rem; color:#aaa; cursor:pointer; font-weight:700; text-decoration:underline; margin-left:6px; }
 
-    /* ── SETUP SCREEN ── */
-    .setup-step { text-align:left; background:#fff; border:2px solid #e0d8c8; border-radius:14px; padding:12px 16px; margin-bottom:10px; }
-    .setup-step-num { font-family:'Fredoka One',cursive; color:var(--blue); font-size:1.2rem; }
-    .setup-step p { color:#555; font-size:.88rem; margin-top:4px; line-height:1.6; }
-    .setup-step code { background:#f0f0f0; padding:2px 6px; border-radius:6px; font-size:.82rem; font-family:monospace; }
-    .setup-step a { color:var(--blue); }
 
     /* ── LEVEL GRID ── */
     #level-screen .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(115px,1fr)); gap:11px; width:100%; margin:14px 0; }
@@ -223,50 +217,6 @@
   <span id="signout-btn" onclick="signOut()">Sign out</span>
 </div>
 
-<!-- ══════════════ SETUP SCREEN ══════════════ -->
-<div id="setup-screen" class="screen active">
-  <div class="card">
-    <h2>Firebase Setup Required</h2>
-    <p>To enable Google login and a shared global leaderboard, connect a free Firebase project.</p>
-
-    <div class="setup-step">
-      <div class="setup-step-num">Step 1 — Create a Firebase project</div>
-      <p>Go to <a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a>, click <strong>Add project</strong>, name it <em>whack-a-mole</em>, and follow the prompts.</p>
-    </div>
-    <div class="setup-step">
-      <div class="setup-step-num">Step 2 — Enable Google Auth</div>
-      <p>In your project go to <strong>Authentication → Sign-in method</strong> and enable <strong>Google</strong>.</p>
-    </div>
-    <div class="setup-step">
-      <div class="setup-step-num">Step 3 — Create a Firestore database</div>
-      <p>Go to <strong>Firestore Database → Create database</strong>. Choose <strong>Start in test mode</strong> (you can tighten rules later). Pick any region.</p>
-    </div>
-    <div class="setup-step">
-      <div class="setup-step-num">Step 4 — Register a Web App</div>
-      <p>Go to <strong>Project Settings → General → Your apps</strong> → click the <strong>&lt;/&gt;</strong> web icon. Copy the <code>firebaseConfig</code> object.</p>
-    </div>
-    <div class="setup-step">
-      <div class="setup-step-num">Step 5 — Add your Vercel domain</div>
-      <p>In Firebase go to <strong>Authentication → Settings → Authorized domains</strong> and add your Vercel URL (e.g. <code>whack-a-mole.vercel.app</code>).</p>
-    </div>
-    <div class="setup-step">
-      <div class="setup-step-num">Step 6 — Paste your config below</div>
-      <p>Fill in the fields and click Save. These are saved in your browser only.</p>
-    </div>
-
-    <br/>
-    <label>API Key</label>
-    <input type="text" id="cfg-apiKey" placeholder="AIzaSy..." autocomplete="off"/>
-    <label>Auth Domain</label>
-    <input type="text" id="cfg-authDomain" placeholder="your-project.firebaseapp.com" autocomplete="off"/>
-    <label>Project ID</label>
-    <input type="text" id="cfg-projectId" placeholder="your-project-id" autocomplete="off"/>
-    <label>App ID</label>
-    <input type="text" id="cfg-appId" placeholder="1:123456:web:abc..." autocomplete="off"/>
-    <br/>
-    <button class="btn btn-green" onclick="saveConfig()">Save &amp; Connect</button>
-  </div>
-</div>
 
 <!-- ══════════════ LOGIN SCREEN ══════════════ -->
 <div id="login-screen" class="screen">
@@ -280,7 +230,6 @@
     </button>
     <br/><br/>
     <div id="login-error" style="color:var(--red);font-weight:800;font-size:.9rem;display:none"></div>
-    <button class="btn btn-white" style="font-size:.8rem;padding:8px 16px" onclick="showSetup()">Change Firebase config</button>
   </div>
 </div>
 
@@ -357,24 +306,15 @@ let auth = null;
 let db   = null;
 let currentUser = null;
 
-function loadConfig() {
-  try { return JSON.parse(localStorage.getItem('wam_firebase_config') || 'null'); } catch(e){ return null; }
-}
-function saveConfig() {
-  const cfg = {
-    apiKey:     document.getElementById('cfg-apiKey').value.trim(),
-    authDomain: document.getElementById('cfg-authDomain').value.trim(),
-    projectId:  document.getElementById('cfg-projectId').value.trim(),
-    appId:      document.getElementById('cfg-appId').value.trim(),
-  };
-  if (!cfg.apiKey || !cfg.authDomain || !cfg.projectId || !cfg.appId) {
-    alert('Please fill in all four fields.');
-    return;
-  }
-  localStorage.setItem('wam_firebase_config', JSON.stringify(cfg));
-  location.reload();
-}
-function showSetup() { showScreen('setup-screen'); }
+const FIREBASE_CONFIG = {
+  apiKey:            "AIzaSyCzqvU02WdSVLnVd12rgVi7NlfBjduCWXo",
+  authDomain:        "whack-a-mole-c08e1.firebaseapp.com",
+  projectId:         "whack-a-mole-c08e1",
+  storageBucket:     "whack-a-mole-c08e1.firebasestorage.app",
+  messagingSenderId: "97895948807",
+  appId:             "1:97895948807:web:d6d86bda4519e4084a00a2",
+  measurementId:     "G-NYYJ60VT33"
+};
 
 // ── INIT ──────────────────────────────────────────────
 function initFirebase(cfg) {
@@ -385,7 +325,6 @@ function initFirebase(cfg) {
     auth.onAuthStateChanged(onAuthStateChanged);
   } catch(e) {
     console.error('Firebase init error:', e);
-    showScreen('setup-screen');
   }
 }
 
@@ -804,18 +743,8 @@ function renderLeaderboard(forLevel) {
 //  BOOT
 // ══════════════════════════════════════════════════════
 (function boot() {
-  const cfg = loadConfig();
-  if (!cfg) {
-    showScreen('setup-screen');
-  } else {
-    // Pre-fill setup form in case they want to edit
-    document.getElementById('cfg-apiKey').value     = cfg.apiKey     || '';
-    document.getElementById('cfg-authDomain').value = cfg.authDomain || '';
-    document.getElementById('cfg-projectId').value  = cfg.projectId  || '';
-    document.getElementById('cfg-appId').value      = cfg.appId      || '';
-    showScreen('login-screen');
-    initFirebase(cfg);
-  }
+  showScreen('login-screen');
+  initFirebase(FIREBASE_CONFIG);
 })();
 </script>
 </body>
