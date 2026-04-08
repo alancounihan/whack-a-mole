@@ -31,7 +31,6 @@
       display: flex; flex-direction: column; align-items: center;
       user-select: none; -webkit-tap-highlight-color: transparent;
     }
-    /* clouds */
     body::before, body::after {
       content:''; position:fixed; top:5%; background:#fff;
       border-radius:50px; opacity:.8; pointer-events:none; z-index:0;
@@ -98,16 +97,33 @@
 
     /* ── USER AVATAR BAR ── */
     #user-bar {
-      display:none; align-items:center; gap:10px;
+      display:none; align-items:center; gap:8px;
       background:rgba(255,255,255,.9); border:3px solid var(--outline);
-      border-radius:50px; padding:6px 16px 6px 6px;
+      border-radius:50px; padding:6px 14px 6px 6px;
       box-shadow:3px 3px 0 var(--outline); margin-top:10px; position:relative; z-index:1;
+      flex-wrap:wrap; justify-content:center;
     }
     #user-bar.visible { display:flex; }
-    #user-avatar { width:36px; height:36px; border-radius:50%; border:2px solid var(--outline); object-fit:cover; }
-    #user-name-bar { font-weight:800; color:var(--brown); font-size:.95rem; }
-    #signout-btn { font-size:.75rem; color:#aaa; cursor:pointer; font-weight:700; text-decoration:underline; margin-left:6px; }
+    #user-avatar { width:34px; height:34px; border-radius:50%; border:2px solid var(--outline); object-fit:cover; }
+    #user-profile-emoji { font-size:1.3rem; }
+    #user-name-bar { font-weight:800; color:var(--brown); font-size:.9rem; }
+    #admin-bar-btn { font-size:.72rem; color:var(--blue); cursor:pointer; font-weight:800; margin-left:2px; padding:3px 8px; background:#e8f4ff; border:2px solid var(--blue); border-radius:50px; }
+    #switch-profile-btn { font-size:.72rem; color:#888; cursor:pointer; font-weight:700; text-decoration:underline; }
+    #signout-btn { font-size:.72rem; color:#aaa; cursor:pointer; font-weight:700; text-decoration:underline; }
 
+    /* ── PROFILE SELECT ── */
+    .profile-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:12px; width:100%; margin:16px 0; }
+    .profile-card {
+      background:#fffbe6; border:3px solid var(--outline); border-radius:20px;
+      padding:16px 10px; text-align:center; cursor:pointer;
+      box-shadow:4px 4px 0 var(--outline); transition:transform .08s,box-shadow .08s;
+    }
+    .profile-card:hover  { transform:translateY(-3px); box-shadow:4px 7px 0 var(--outline); }
+    .profile-card:active { transform:translate(3px,3px); box-shadow:1px 1px 0 var(--outline); }
+    .profile-avatar { font-size:2.8rem; margin-bottom:6px; line-height:1; }
+    .profile-name   { font-family:'Fredoka One',cursive; font-size:1rem; color:var(--brown); }
+    .profile-add    { background:#f5f5f5; border-style:dashed; border-color:#bbb; color:#999; }
+    .profile-add .profile-name { color:#999; }
 
     /* ── LEVEL GRID ── */
     #level-screen .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(115px,1fr)); gap:11px; width:100%; margin:14px 0; }
@@ -141,12 +157,34 @@
 
     /* ── MOLE GRID ── */
     #mole-grid { display:grid; gap:clamp(8px,2.5vw,18px); width:100%; padding:14px; background:rgba(0,0,0,.06); border:3px solid rgba(0,0,0,.1); border-radius:22px; }
-    .hole { position:relative; width:100%; padding-bottom:54%; cursor:pointer; }
-    .dirt-mound { position:absolute; bottom:0; left:0; right:0; height:100%; background:radial-gradient(ellipse at 50% 65%,var(--dirt1) 40%,var(--dirt2) 100%); border-radius:50%; border:3px solid var(--outline); box-shadow:4px 4px 0 rgba(0,0,0,.2); }
-    .hole-center { position:absolute; bottom:10%; left:50%; transform:translateX(-50%); width:58%; height:48%; background:radial-gradient(ellipse,#1a0800 20%,#3d1c00 100%); border-radius:50%; border:2px solid var(--outline); }
-    .mole { position:absolute; bottom:26%; left:50%; transform:translateX(-50%) translateY(130%); width:80%; z-index:10; transition:transform .15s cubic-bezier(.34,1.56,.64,1); pointer-events:none; cursor:pointer; }
-    .mole.up      { transform:translateX(-50%) translateY(6%);   pointer-events:all; }
-    .mole.whacked { transform:translateX(-50%) translateY(130%); pointer-events:none; transition:transform .18s ease-in; }
+
+    /* ── HOLE: moles hidden underground until they pop up ── */
+    .hole {
+      position:relative; width:100%; padding-bottom:95%; cursor:pointer;
+      overflow:hidden; /* clips mole when below ground */
+    }
+    .dirt-mound {
+      position:absolute; bottom:0; left:-6%; right:-6%; height:55%;
+      background:radial-gradient(ellipse at 50% 65%,var(--dirt1) 40%,var(--dirt2) 100%);
+      border-radius:50%;
+      border:3px solid var(--outline); box-shadow:4px 4px 0 rgba(0,0,0,.2);
+      z-index:12; pointer-events:none;
+    }
+    .hole-center {
+      position:absolute; top:8%; left:50%; transform:translateX(-50%);
+      width:52%; height:38%;
+      background:radial-gradient(ellipse,#1a0800 20%,#3d1c00 100%);
+      border-radius:50%; border:2px solid var(--outline);
+    }
+    .mole {
+      position:absolute; bottom:12%; left:50%;
+      transform:translateX(-50%) translateY(120%);
+      width:76%; z-index:10;
+      transition:transform .15s cubic-bezier(.34,1.56,.64,1);
+      pointer-events:none; cursor:pointer;
+    }
+    .mole.up      { transform:translateX(-50%) translateY(4%);   pointer-events:all; }
+    .mole.whacked { transform:translateX(-50%) translateY(120%); pointer-events:none; transition:transform .18s ease-in; }
     .mole svg { width:100%; height:auto; filter:drop-shadow(2px 3px 0 rgba(0,0,0,.35)); }
 
     /* ── COUNTDOWN ── */
@@ -180,7 +218,7 @@
     .lb-tab { padding:7px 14px; border-radius:50px; border:2px solid rgba(255,255,255,.5); background:rgba(255,255,255,.25); color:#fff; font-weight:800; font-size:.82rem; cursor:pointer; }
     .lb-tab.active { background:#fff; color:var(--brown); border-color:var(--outline); }
     .lb-table { background:#fffbe6; border:3px solid var(--outline); border-radius:20px; overflow:hidden; width:100%; box-shadow:5px 5px 0 var(--outline); }
-    .lb-row { display:grid; grid-template-columns:44px 36px 1fr 74px 66px; align-items:center; padding:10px 14px; border-bottom:2px solid #f0e8d8; font-weight:800; gap:4px; }
+    .lb-row { display:grid; grid-template-columns:40px 36px 1fr 70px 62px; align-items:center; padding:10px 14px; border-bottom:2px solid #f0e8d8; font-weight:800; gap:4px; }
     .lb-row:last-child { border-bottom:none; }
     .lb-row.header { background:var(--brown); color:#fff; font-size:.72rem; text-transform:uppercase; letter-spacing:.8px; }
     .lb-rank  { font-family:'Fredoka One',cursive; font-size:1.2rem; color:#ccc; }
@@ -199,6 +237,34 @@
     .spinner { width:40px; height:40px; border:5px solid rgba(255,255,255,.3); border-top-color:#fff; border-radius:50%; animation:spin .8s linear infinite; margin:20px auto; }
     @keyframes spin { to { transform:rotate(360deg); } }
 
+    /* ── ADMIN PORTAL ── */
+    #admin-screen { max-width:780px; }
+    #admin-screen h2 { font-family:'Fredoka One',cursive; color:#fff; font-size:clamp(1.6rem,5vw,2.2rem); text-shadow:3px 3px 0 rgba(0,0,0,.2); margin:12px 0 8px; text-align:center; }
+    .admin-tabs { display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; justify-content:center; }
+    .admin-tab {
+      padding:9px 20px; border-radius:50px; border:3px solid var(--outline);
+      background:#fffbe6; color:var(--outline); font-weight:800; font-size:.88rem;
+      cursor:pointer; box-shadow:3px 3px 0 var(--outline); font-family:'Fredoka One',cursive;
+      transition:transform .08s,box-shadow .08s;
+    }
+    .admin-tab:active { transform:translate(2px,2px); box-shadow:1px 1px 0 var(--outline); }
+    .admin-tab.active { background:var(--brown); color:#fff; }
+    .admin-stat-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:14px; width:100%; }
+    .admin-stat { background:#fffbe6; border:3px solid var(--outline); border-radius:16px; padding:12px 8px; text-align:center; box-shadow:3px 3px 0 var(--outline); }
+    .admin-stat-val { font-family:'Fredoka One',cursive; font-size:clamp(1.6rem,5vw,2.2rem); color:var(--green); }
+    .admin-stat-lbl { font-size:.7rem; font-weight:800; color:#aaa; text-transform:uppercase; letter-spacing:.5px; margin-top:2px; }
+    .admin-table { width:100%; background:#fffbe6; border:3px solid var(--outline); border-radius:20px; overflow:hidden; box-shadow:5px 5px 0 var(--outline); overflow-x:auto; }
+    .admin-row { display:grid; align-items:center; padding:9px 12px; border-bottom:2px solid #f0e8d8; font-weight:800; font-size:.8rem; gap:6px; }
+    .admin-row:last-child { border-bottom:none; }
+    .admin-row.aheader { background:var(--brown); color:#fff; font-size:.68rem; text-transform:uppercase; letter-spacing:.8px; }
+    .users-cols  { grid-template-columns:32px 1fr 150px 80px 70px; }
+    .scores-cols { grid-template-columns:28px 1fr 55px 55px 55px 80px 60px; }
+    .logins-cols { grid-template-columns:1fr 150px 130px; }
+    .badge { display:inline-block; padding:2px 8px; border-radius:50px; font-size:.7rem; font-weight:800; }
+    .badge-green { background:#d4edda; color:#155724; }
+    .badge-red   { background:#f8d7da; color:#721c24; }
+    .btn-sm { padding:4px 10px; font-size:.72rem; border:2px solid currentColor; border-radius:50px; cursor:pointer; font-weight:800; font-family:'Nunito',sans-serif; background:var(--red); color:#fff; border-color:var(--red); box-shadow:2px 2px 0 rgba(0,0,0,.2); }
+
     @media (max-width:400px) {
       .hud-val { font-size:1.2rem; }
       .btn { padding:11px 18px; font-size:.95rem; }
@@ -208,12 +274,15 @@
 </head>
 <body>
 
-<div id="main-title">🔨 Whack-a-Mole!</div>
+<div id="main-title">&#x1F528; Whack-a-Mole!</div>
 
 <!-- user bar -->
 <div id="user-bar">
-  <img id="user-avatar" src="" alt=""/>
+  <img id="user-avatar" src="" alt="" style="display:none"/>
+  <span id="user-profile-emoji"></span>
   <span id="user-name-bar"></span>
+  <span id="admin-bar-btn" onclick="openAdmin()" style="display:none">&#x2699;&#xFE0F; Admin</span>
+  <span id="switch-profile-btn" onclick="switchProfile()">Switch</span>
   <span id="signout-btn" onclick="signOut()">Sign out</span>
 </div>
 
@@ -221,7 +290,7 @@
 <!-- ══════════════ LOGIN SCREEN ══════════════ -->
 <div id="login-screen" class="screen">
   <div class="card">
-    <div style="font-size:3.5rem;margin-bottom:8px">🔨</div>
+    <div style="font-size:3.5rem;margin-bottom:8px">&#x1F528;</div>
     <h2>Welcome!</h2>
     <p>Sign in to play and compete on the global leaderboard!</p>
     <button class="btn-google" onclick="signInGoogle()">
@@ -233,15 +302,27 @@
   </div>
 </div>
 
+<!-- ══════════════ PROFILE SELECT SCREEN ══════════════ -->
+<div id="profile-screen" class="screen">
+  <div class="card">
+    <div style="font-size:3rem;margin-bottom:8px">&#x1F46A;</div>
+    <h2>Who's Playing?</h2>
+    <p>Select your profile or add a new one to get started!</p>
+    <div class="profile-grid" id="profile-grid"></div>
+  </div>
+</div>
+
 <!-- ══════════════ USERNAME SCREEN ══════════════ -->
 <div id="username-screen" class="screen">
   <div class="card">
-    <div style="font-size:3rem;margin-bottom:8px">🐾</div>
+    <div style="font-size:3rem;margin-bottom:8px">&#x1F43E;</div>
     <h2>Choose your Game Name!</h2>
-    <p>Pick a fun username that will appear on the leaderboard.</p>
+    <p>Pick a fun name that will appear on the leaderboard. You can have multiple profiles per account!</p>
     <label for="game-username">Your Game Name</label>
     <input id="game-username" type="text" placeholder="e.g. MoleDestroyer99" maxlength="20" autocomplete="off"/>
-    <button class="btn btn-green" onclick="saveUsername()">Let's Go!</button>
+    <button class="btn btn-green" onclick="saveUsername()">Create Profile!</button>
+    <br/>
+    <button class="btn btn-white" onclick="showScreen('profile-screen');loadProfiles()" style="margin-top:8px;font-size:.9rem">&#x2190; Back to Profiles</button>
   </div>
 </div>
 
@@ -250,7 +331,7 @@
   <div id="welcome-msg"></div>
   <div class="grid" id="level-grid"></div>
   <div class="nav">
-    <button class="btn btn-yellow" onclick="showScreen('leaderboard-screen');renderLeaderboard()">🏆 Leaderboard</button>
+    <button class="btn btn-yellow" onclick="showScreen('leaderboard-screen');renderLeaderboard()">&#x1F3C6; Leaderboard</button>
   </div>
 </div>
 
@@ -270,7 +351,7 @@
 <!-- ══════════════ RESULT ══════════════ -->
 <div id="result-screen" class="screen">
   <div class="card">
-    <div class="result-emoji" id="result-emoji">🎉</div>
+    <div class="result-emoji" id="result-emoji">&#x1F389;</div>
     <div class="result-title" id="result-title">Level Complete!</div>
     <div class="result-sub"   id="result-sub"></div>
     <div class="result-stats">
@@ -284,11 +365,30 @@
 
 <!-- ══════════════ LEADERBOARD ══════════════ -->
 <div id="leaderboard-screen" class="screen">
-  <h2>🏆 Global Leaderboard</h2>
+  <h2>&#x1F3C6; Global Leaderboard</h2>
   <div class="lb-tabs"  id="lb-tabs"></div>
   <div class="lb-table" id="lb-table"><div class="lb-loading"><div class="spinner"></div></div></div>
   <div class="nav">
-    <button class="btn btn-green" onclick="showScreen('level-screen');buildLevelGrid()">🎮 Levels</button>
+    <button class="btn btn-green" onclick="showScreen('level-screen');buildLevelGrid()">&#x1F3AE; Levels</button>
+  </div>
+</div>
+
+<!-- ══════════════ ADMIN PORTAL ══════════════ -->
+<div id="admin-screen" class="screen">
+  <h2>&#x1F6E0;&#xFE0F; Admin Portal</h2>
+  <div class="admin-stat-grid" id="admin-stats">
+    <div class="admin-stat"><div class="admin-stat-val">...</div><div class="admin-stat-lbl">Accounts</div></div>
+    <div class="admin-stat"><div class="admin-stat-val">...</div><div class="admin-stat-lbl">Scores</div></div>
+    <div class="admin-stat"><div class="admin-stat-val">...</div><div class="admin-stat-lbl">Logins</div></div>
+  </div>
+  <div class="admin-tabs">
+    <button class="admin-tab active" data-tab="users"  onclick="switchAdminTab('users')">&#x1F465; Users</button>
+    <button class="admin-tab"        data-tab="scores" onclick="switchAdminTab('scores')">&#x1F3C6; Scores</button>
+    <button class="admin-tab"        data-tab="logins" onclick="switchAdminTab('logins')">&#x1F4CA; Logins</button>
+  </div>
+  <div id="admin-content" style="width:100%"><div class="lb-loading"><div class="spinner"></div></div></div>
+  <div class="nav">
+    <button class="btn btn-green" onclick="showScreen('level-screen');buildLevelGrid()">&#x2190; Back to Game</button>
   </div>
 </div>
 
@@ -300,11 +400,16 @@
 
 <script>
 // ═══════════════════════════════════════════════════════
-//  FIREBASE CONFIG — stored in localStorage after setup
+//  FIREBASE CONFIG
 // ═══════════════════════════════════════════════════════
 let auth = null;
 let db   = null;
-let currentUser = null;
+let currentUser    = null;
+let currentProfile = null; // { id, name, emoji }
+let gameUsername   = '';
+
+const ADMIN_EMAILS  = ['alancounihan@gmail.com'];
+const PROFILE_EMOJIS = ['&#x1F600;','&#x1F60E;','&#x1F929;','&#x1F973;','&#x1F61C;','&#x1F9B8;','&#x1F98A;','&#x1F43C;','&#x1F3AE;','&#x2B50;','&#x1F680;','&#x1F984;'];
 
 const FIREBASE_CONFIG = {
   apiKey:            "AIzaSyCzqvU02WdSVLnVd12rgVi7NlfBjduCWXo",
@@ -323,29 +428,15 @@ function initFirebase(cfg) {
     auth = firebase.auth();
     db   = firebase.firestore();
     auth.onAuthStateChanged(onAuthStateChanged);
-  } catch(e) {
-    console.error('Firebase init error:', e);
-  }
+  } catch(e) { console.error('Firebase init error:', e); }
 }
 
 function onAuthStateChanged(user) {
-  if (!user) {
-    hideUserBar();
-    showScreen('login-screen');
-    return;
-  }
+  if (!user) { hideUserBar(); showScreen('login-screen'); return; }
   currentUser = user;
+  logLoginEvent(user);
   showUserBar(user);
-  // Check if they have a game username
-  db.collection('users').doc(user.uid).get().then(doc => {
-    if (doc.exists && doc.data().gameUsername) {
-      gameUsername = doc.data().gameUsername;
-      buildLevelGrid();
-      showScreen('level-screen');
-    } else {
-      showScreen('username-screen');
-    }
-  }).catch(() => showScreen('username-screen'));
+  loadProfiles();
 }
 
 // ── AUTH ──────────────────────────────────────────────
@@ -358,7 +449,14 @@ function signInGoogle() {
   });
 }
 function signOut() {
-  auth.signOut().then(() => { currentUser = null; gameUsername = ''; });
+  auth.signOut().then(() => { currentUser = null; gameUsername = ''; currentProfile = null; });
+}
+function switchProfile() {
+  currentProfile = null; gameUsername = '';
+  loadProfiles();
+}
+function isAdmin() {
+  return currentUser && ADMIN_EMAILS.includes(currentUser.email);
 }
 
 // ── USER BAR ──────────────────────────────────────────
@@ -368,45 +466,127 @@ function showUserBar(user) {
   const av = document.getElementById('user-avatar');
   av.src = user.photoURL || '';
   av.style.display = user.photoURL ? 'block' : 'none';
+  document.getElementById('user-profile-emoji').textContent = currentProfile ? currentProfile.emoji : '';
   document.getElementById('user-name-bar').textContent = gameUsername || user.displayName || 'Player';
+  document.getElementById('admin-bar-btn').style.display = isAdmin() ? 'inline-block' : 'none';
 }
 function hideUserBar() {
   document.getElementById('user-bar').classList.remove('visible');
 }
 
-// ── USERNAME ──────────────────────────────────────────
-let gameUsername = '';
+// ── PROFILES ──────────────────────────────────────────
+function loadProfiles() {
+  if (!db || !currentUser) return;
+  db.collection('users').doc(currentUser.uid).collection('profiles').get().then(snap => {
+    if (snap.empty) {
+      // Check for legacy gameUsername migration
+      db.collection('users').doc(currentUser.uid).get().then(doc => {
+        if (doc.exists && doc.data().gameUsername) {
+          const legacy = doc.data();
+          const emoji  = PROFILE_EMOJIS[0];
+          db.collection('users').doc(currentUser.uid).collection('profiles').add({
+            name: legacy.gameUsername, emoji: emoji,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          }).then(ref => {
+            selectProfile({ id: ref.id, name: legacy.gameUsername, emoji: emoji });
+          });
+        } else {
+          showScreen('profile-screen');
+          renderProfileGrid([]);
+        }
+      }).catch(() => { showScreen('profile-screen'); renderProfileGrid([]); });
+    } else {
+      const profiles = snap.docs.map(d => ({id:d.id, ...d.data()}));
+      if (profiles.length === 1) {
+        // Auto-select single profile for convenience
+        selectProfile(profiles[0]);
+      } else {
+        showScreen('profile-screen');
+        renderProfileGrid(profiles);
+      }
+    }
+  }).catch(() => { showScreen('profile-screen'); renderProfileGrid([]); });
+}
+
+function renderProfileGrid(profiles) {
+  const grid = document.getElementById('profile-grid');
+  grid.innerHTML = '';
+  profiles.forEach(p => {
+    const card = document.createElement('div');
+    card.className = 'profile-card';
+    card.innerHTML = '<div class="profile-avatar">'+p.emoji+'</div><div class="profile-name">'+escHtml(p.name)+'</div>';
+    card.onclick = () => selectProfile(p);
+    grid.appendChild(card);
+  });
+  const addCard = document.createElement('div');
+  addCard.className = 'profile-card profile-add';
+  addCard.innerHTML = '<div class="profile-avatar">&#x2795;</div><div class="profile-name">Add Profile</div>';
+  addCard.onclick = () => { document.getElementById('game-username').value=''; showScreen('username-screen'); };
+  grid.appendChild(addCard);
+}
+
+function selectProfile(profile) {
+  currentProfile = profile;
+  gameUsername   = profile.name;
+  showUserBar(currentUser);
+  buildLevelGrid();
+  showScreen('level-screen');
+}
+
+// ── USERNAME / PROFILE CREATE ─────────────────────────
 function saveUsername() {
   const val = document.getElementById('game-username').value.trim();
   if (!val) { alert('Please enter a game name!'); return; }
   if (val.length < 2) { alert('Name must be at least 2 characters.'); return; }
-  gameUsername = val;
-  db.collection('users').doc(currentUser.uid).set({
-    gameUsername: val,
-    displayName:  currentUser.displayName,
-    photoURL:     currentUser.photoURL || '',
-    updatedAt:    firebase.firestore.FieldValue.serverTimestamp()
-  }, { merge: true }).then(() => {
-    showUserBar(currentUser);
-    buildLevelGrid();
-    showScreen('level-screen');
-  });
+  const emoji = PROFILE_EMOJIS[Math.floor(Math.random() * PROFILE_EMOJIS.length)];
+  db.collection('users').doc(currentUser.uid).collection('profiles').add({
+    name: val, emoji: emoji,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  }).then(ref => {
+    // Keep top-level user doc for admin queries
+    db.collection('users').doc(currentUser.uid).set({
+      displayName: currentUser.displayName,
+      photoURL:    currentUser.photoURL || '',
+      email:       currentUser.email || '',
+      updatedAt:   firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+    selectProfile({ id: ref.id, name: val, emoji: emoji });
+  }).catch(err => alert('Error saving profile: ' + err.message));
 }
 
-// ══════════════════════════════════════════════════════
+// ── LOGIN EVENT LOGGING ───────────────────────────────
+function logLoginEvent(user) {
+  if (!db) return;
+  db.collection('loginEvents').add({
+    userId:      user.uid,
+    email:       user.email || '',
+    displayName: user.displayName || '',
+    timestamp:   firebase.firestore.FieldValue.serverTimestamp(),
+    userAgent:   navigator.userAgent.substring(0, 120)
+  }).catch(() => {});
+  // Update user doc
+  db.collection('users').doc(user.uid).set({
+    displayName: user.displayName,
+    photoURL:    user.photoURL || '',
+    email:       user.email || '',
+    lastLogin:   firebase.firestore.FieldValue.serverTimestamp()
+  }, { merge: true });
+}
+
+// ═══════════════════════════════════════════════════════
 //  LEVEL DEFINITIONS  (10 levels)
-// ══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 const LEVELS = [
-  { id:1,  name:'Rookie',    emoji:'🟢', holes:4,  duration:30, target:8,  moleSpeed:1200, cols:2 },
-  { id:2,  name:'Beginner',  emoji:'🔵', holes:4,  duration:30, target:12, moleSpeed:1000, cols:2 },
-  { id:3,  name:'Easy',      emoji:'🟡', holes:6,  duration:35, target:16, moleSpeed:850,  cols:3 },
-  { id:4,  name:'Normal',    emoji:'🟠', holes:6,  duration:35, target:20, moleSpeed:700,  cols:3 },
-  { id:5,  name:'Pro',       emoji:'🔴', holes:6,  duration:40, target:25, moleSpeed:580,  cols:3 },
-  { id:6,  name:'Pro+',      emoji:'🟣', holes:9,  duration:40, target:28, moleSpeed:470,  cols:3 },
-  { id:7,  name:'Expert',    emoji:'💜', holes:9,  duration:45, target:34, moleSpeed:380,  cols:3 },
-  { id:8,  name:'Expert+',   emoji:'❤️', holes:9,  duration:45, target:40, moleSpeed:300,  cols:3 },
-  { id:9,  name:'Master',    emoji:'🖤', holes:12, duration:50, target:48, moleSpeed:240,  cols:4 },
-  { id:10, name:'LEGEND',    emoji:'💀', holes:12, duration:55, target:56, moleSpeed:185,  cols:4 },
+  { id:1,  name:'Rookie',    emoji:'&#x1F7E2;', holes:4,  duration:30, target:8,  moleSpeed:1200, cols:2 },
+  { id:2,  name:'Beginner',  emoji:'&#x1F535;', holes:4,  duration:30, target:12, moleSpeed:1000, cols:2 },
+  { id:3,  name:'Easy',      emoji:'&#x1F7E1;', holes:6,  duration:35, target:16, moleSpeed:850,  cols:3 },
+  { id:4,  name:'Normal',    emoji:'&#x1F7E0;', holes:6,  duration:35, target:20, moleSpeed:700,  cols:3 },
+  { id:5,  name:'Pro',       emoji:'&#x1F534;', holes:6,  duration:40, target:25, moleSpeed:580,  cols:3 },
+  { id:6,  name:'Pro+',      emoji:'&#x1F7E3;', holes:9,  duration:40, target:28, moleSpeed:470,  cols:3 },
+  { id:7,  name:'Expert',    emoji:'&#x1F49C;', holes:9,  duration:45, target:34, moleSpeed:380,  cols:3 },
+  { id:8,  name:'Expert+',   emoji:'&#x2764;&#xFE0F;',  holes:9,  duration:45, target:40, moleSpeed:300,  cols:3 },
+  { id:9,  name:'Master',    emoji:'&#x1F5A4;', holes:12, duration:50, target:48, moleSpeed:240,  cols:4 },
+  { id:10, name:'LEGEND',    emoji:'&#x1F480;', holes:12, duration:55, target:56, moleSpeed:185,  cols:4 },
 ];
 
 // ── MOLE SKINS ────────────────────────────────────────
@@ -495,8 +675,14 @@ let currentLevel = null;
 let score=0, hits=0, misses=0, timeLeft=0;
 let gameTimer=null, moleTimers=[], gameActive=false;
 
-function loadProgress()  { try { return JSON.parse(localStorage.getItem('wam_prog')||'{}'); }catch(e){return{};} }
-function saveProgress(p) { localStorage.setItem('wam_prog', JSON.stringify(p)); }
+function loadProgress()  {
+  const key = 'wam_prog_' + (currentProfile ? currentProfile.id : 'default');
+  try { return JSON.parse(localStorage.getItem(key)||'{}'); } catch(e){ return {}; }
+}
+function saveProgress(p) {
+  const key = 'wam_prog_' + (currentProfile ? currentProfile.id : 'default');
+  localStorage.setItem(key, JSON.stringify(p));
+}
 
 // ── SCREENS ───────────────────────────────────────────
 function showScreen(id) {
@@ -508,7 +694,8 @@ function showScreen(id) {
 // ── LEVEL GRID ────────────────────────────────────────
 function buildLevelGrid() {
   const progress = loadProgress();
-  document.getElementById('welcome-msg').textContent = 'Hi '+gameUsername+'! Choose a level';
+  const emoji = currentProfile ? currentProfile.emoji : '';
+  document.getElementById('welcome-msg').textContent = emoji + ' Hi ' + gameUsername + '! Choose a level';
   const grid = document.getElementById('level-grid');
   grid.innerHTML = '';
   LEVELS.forEach((lv, idx) => {
@@ -517,10 +704,10 @@ function buildLevelGrid() {
     const div = document.createElement('div');
     div.className = 'level-btn lv-'+lv.id+(unlocked?'':' locked')+(complete?' complete':'');
     div.innerHTML =
-      (unlocked?'':'<div style="font-size:1.3rem">🔒</div>')+
+      (unlocked?'':'<div style="font-size:1.3rem">&#x1F512;</div>')+
       '<div class="lv-num">'+lv.emoji+' '+lv.id+'</div>'+
       '<div class="lv-name">'+lv.name+'</div>'+
-      '<div style="font-size:.85rem;margin-top:2px">'+(complete?'⭐':'')+'</div>'+
+      '<div style="font-size:.85rem;margin-top:2px">'+(complete?'&#x2B50;':'')+'</div>'+
       '<div style="font-size:.66rem;color:#aaa;font-weight:800;margin-top:2px">'+lv.holes+' holes&nbsp;'+lv.duration+'s</div>';
     if (unlocked) div.onclick = ()=>launchLevel(lv);
     grid.appendChild(div);
@@ -642,14 +829,18 @@ function quitGame() {
 // ── SAVE SCORE TO FIRESTORE ───────────────────────────
 function saveScoreToFirestore(levelId, sc, time, accuracy) {
   if (!db||!currentUser) return;
+  const profileId = currentProfile ? currentProfile.id : 'default';
   const ref = db.collection('scores')
                 .where('userId','==',currentUser.uid)
+                .where('profileId','==',profileId)
                 .where('levelId','==',levelId);
   ref.get().then(snap => {
     const existing = snap.docs[0];
     const data = {
       userId:       currentUser.uid,
+      profileId:    profileId,
       gameUsername: gameUsername,
+      emoji:        currentProfile ? currentProfile.emoji : '&#x1F600;',
       photoURL:     currentUser.photoURL||'',
       levelId:      levelId,
       score:        sc,
@@ -659,7 +850,6 @@ function saveScoreToFirestore(levelId, sc, time, accuracy) {
     };
     if (existing) {
       const old = existing.data();
-      // only update if new score is better (higher score, or same score but faster)
       if (sc > old.score || (sc===old.score && time < old.time)) {
         existing.ref.update(data);
       }
@@ -673,7 +863,7 @@ function saveScoreToFirestore(levelId, sc, time, accuracy) {
 function showResultScreen(won,timeTaken,accuracy) {
   const lv=currentLevel;
   const next=LEVELS.find(l=>l.id===lv.id+1);
-  document.getElementById('result-emoji').textContent = won?'🎉':'😔';
+  document.getElementById('result-emoji').textContent = won?'&#x1F389;':'&#x1F614;';
   document.getElementById('result-title').textContent = won?'Level Complete!':"Time's Up!";
   document.getElementById('result-sub').textContent   = won
     ?'Amazing! You beat Level '+lv.id+' - '+lv.name+'!'
@@ -683,13 +873,13 @@ function showResultScreen(won,timeTaken,accuracy) {
   document.getElementById('res-acc').textContent   = accuracy+'%';
   const btns=document.getElementById('result-btns');
   btns.innerHTML='';
-  if (won&&next) addBtn(btns,'btn-green','Level '+next.id+' ▶',()=>launchLevel(next));
+  if (won&&next) addBtn(btns,'btn-green','Level '+next.id+' &#x25B6;',()=>launchLevel(next));
   addBtn(btns,'btn-yellow','Retry',()=>launchLevel(lv));
   addBtn(btns,'btn-blue','Levels',()=>{buildLevelGrid();showScreen('level-screen');});
   addBtn(btns,'btn-purple','Leaderboard',()=>{showScreen('leaderboard-screen');renderLeaderboard(lv.id);});
   showScreen('result-screen');
 }
-function addBtn(p,cls,txt,fn){const b=document.createElement('button');b.className='btn '+cls;b.textContent=txt;b.onclick=fn;p.appendChild(b);}
+function addBtn(p,cls,txt,fn){const b=document.createElement('button');b.className='btn '+cls;b.innerHTML=txt;b.onclick=fn;p.appendChild(b);}
 
 // ── LEADERBOARD ───────────────────────────────────────
 let lbTab=1;
@@ -701,17 +891,17 @@ function renderLeaderboard(forLevel) {
   LEVELS.forEach(lv=>{
     const t=document.createElement('div');
     t.className='lb-tab'+(lv.id===lbTab?' active':'');
-    t.textContent=lv.emoji+' '+lv.id;
+    t.innerHTML=lv.emoji+' '+lv.id;
     t.onclick=()=>renderLeaderboard(lv.id);
     tabs.appendChild(t);
   });
   table.innerHTML='<div class="lb-loading"><div class="spinner"></div></div>';
-  if(!db){table.innerHTML='<div class="lb-empty">Connect Firebase to see the global leaderboard!</div>';return;}
+  if(!db){table.innerHTML='<div class="lb-empty">Firebase not connected.</div>';return;}
   db.collection('scores').where('levelId','==',lbTab)
     .orderBy('score','desc').orderBy('time','asc').limit(20)
     .get().then(snap=>{
       table.innerHTML='';
-      if(snap.empty){table.innerHTML='<div class="lb-empty">No scores yet!<br/>Be the first!</div>';return;}
+      if(snap.empty){table.innerHTML='<div class="lb-empty">No scores yet!<br/>Be the first! &#x1F3C6;</div>';return;}
       const hdr=document.createElement('div');
       hdr.className='lb-row header';
       hdr.innerHTML='<span>#</span><span></span><span>Player</span><span style="text-align:right">Score</span><span style="text-align:right">Time</span>';
@@ -720,23 +910,163 @@ function renderLeaderboard(forLevel) {
         const e=doc.data();
         const row=document.createElement('div');
         row.className='lb-row';
-        if(currentUser&&e.userId===currentUser.uid) row.style.background='#fff8dc';
-        const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
+        if(currentUser&&e.userId===currentUser.uid&&currentProfile&&e.profileId===currentProfile.id) row.style.background='#fff8dc';
+        const medal=i===0?'&#x1F947;':i===1?'&#x1F948;':i===2?'&#x1F949;':'';
         const rnkCls=i===0?'gold':i===1?'silver':i===2?'bronze':'';
-        const avatarHtml=e.photoURL
-          ?'<img class="lb-avatar" src="'+e.photoURL+'" alt=""/>'
-          :'<div class="lb-avatar-placeholder">👤</div>';
+        // Show profile emoji if available, else photo
+        const avatarHtml = e.emoji
+          ? '<span style="font-size:1.3rem;line-height:1">'+e.emoji+'</span>'
+          : (e.photoURL
+              ? '<img class="lb-avatar" src="'+e.photoURL+'" alt=""/>'
+              : '<div class="lb-avatar-placeholder">&#x1F464;</div>');
         row.innerHTML=
           '<span class="lb-rank '+rnkCls+'">'+(medal||(i+1))+'</span>'+
           avatarHtml+
-          '<span class="lb-name">'+e.gameUsername+'</span>'+
+          '<span class="lb-name">'+escHtml(e.gameUsername)+'</span>'+
           '<span class="lb-score">'+e.score+' pts</span>'+
           '<span class="lb-time">'+e.time+'s</span>';
         table.appendChild(row);
       });
     }).catch(err=>{
-      table.innerHTML='<div class="lb-empty">Error loading scores.<br/>'+err.message+'</div>';
+      table.innerHTML='<div class="lb-empty">Error loading scores.<br/><small>'+escHtml(err.message)+'</small></div>';
     });
+}
+
+// ═══════════════════════════════════════════════════════
+//  ADMIN PORTAL
+// ═══════════════════════════════════════════════════════
+let adminTab = 'users';
+
+function openAdmin() {
+  if (!isAdmin()) { alert('Access denied.'); return; }
+  showScreen('admin-screen');
+  loadAdminStats();
+  loadAdminContent('users');
+}
+
+function switchAdminTab(tab) {
+  adminTab = tab;
+  document.querySelectorAll('.admin-tab').forEach(t => {
+    t.classList.toggle('active', t.getAttribute('data-tab') === tab);
+  });
+  loadAdminContent(tab);
+}
+
+function loadAdminStats() {
+  const statsDiv = document.getElementById('admin-stats');
+  Promise.all([
+    db.collection('users').get(),
+    db.collection('scores').get(),
+    db.collection('loginEvents').get()
+  ]).then(([users, scores, events]) => {
+    statsDiv.innerHTML =
+      '<div class="admin-stat"><div class="admin-stat-val">'+users.size+'</div><div class="admin-stat-lbl">Accounts</div></div>'+
+      '<div class="admin-stat"><div class="admin-stat-val">'+scores.size+'</div><div class="admin-stat-lbl">Scores</div></div>'+
+      '<div class="admin-stat"><div class="admin-stat-val">'+events.size+'</div><div class="admin-stat-lbl">Logins</div></div>';
+  }).catch(() => {});
+}
+
+function loadAdminContent(tab) {
+  const content = document.getElementById('admin-content');
+  content.innerHTML = '<div class="lb-loading"><div class="spinner"></div></div>';
+
+  if (tab === 'users') {
+    db.collection('users').get().then(snap => {
+      if (snap.empty) { content.innerHTML='<div class="lb-empty">No users yet.</div>'; return; }
+      const userDocs = snap.docs;
+      const profilePromises = userDocs.map(doc =>
+        db.collection('users').doc(doc.id).collection('profiles').get().catch(()=>({size:0,docs:[]}))
+      );
+      Promise.all(profilePromises).then(profileSnaps => {
+        let html = '<div class="admin-table"><div class="admin-row users-cols aheader">'+
+          '<span>&#x1F464;</span><span>Name</span><span>Email</span><span>Profiles</span><span>Action</span></div>';
+        userDocs.forEach((doc, i) => {
+          const u = doc.data();
+          const profileCount = profileSnaps[i].size || 0;
+          const profiles = (profileSnaps[i].docs||[]).map(d=>d.data().name).join(', ') || '-';
+          const lastLogin = u.lastLogin ? new Date(u.lastLogin.seconds*1000).toLocaleDateString() : 'Never';
+          const avatarHtml = u.photoURL
+            ? '<img src="'+u.photoURL+'" style="width:28px;height:28px;border-radius:50%;border:2px solid #2d1a0e;object-fit:cover" onerror="this.style.display=\'none\'"/>'
+            : '<span>&#x1F464;</span>';
+          html += '<div class="admin-row users-cols">'+
+            '<span>'+avatarHtml+'</span>'+
+            '<span style="overflow:hidden;text-overflow:ellipsis">'+escHtml(u.displayName||'Unknown')+'</span>'+
+            '<span style="font-size:.72rem;overflow:hidden;text-overflow:ellipsis;color:#888">'+escHtml(u.email||'-')+'</span>'+
+            '<span title="'+escHtml(profiles)+'">'+profileCount+' profile'+(profileCount!==1?'s':'')+'</span>'+
+            '<span><button class="btn-sm" onclick="adminRemoveUser(\''+doc.id+'\')">Remove</button></span>'+
+          '</div>';
+        });
+        html += '</div>';
+        content.innerHTML = html;
+      });
+    }).catch(err => { content.innerHTML='<div class="lb-empty">Error: '+escHtml(err.message)+'</div>'; });
+  }
+
+  if (tab === 'scores') {
+    db.collection('scores').orderBy('timestamp','desc').limit(100).get().then(snap => {
+      if (snap.empty) { content.innerHTML='<div class="lb-empty">No scores yet.</div>'; return; }
+      let html = '<div class="admin-table"><div class="admin-row scores-cols aheader">'+
+        '<span>#</span><span>Player</span><span>Lv</span><span>Score</span><span>Time</span><span>Date</span><span>Del</span></div>';
+      snap.docs.forEach((doc, i) => {
+        const s = doc.data();
+        const date = s.timestamp ? new Date(s.timestamp.seconds*1000).toLocaleDateString() : '-';
+        html += '<div class="admin-row scores-cols">'+
+          '<span style="color:#aaa">'+(i+1)+'</span>'+
+          '<span style="overflow:hidden;text-overflow:ellipsis">'+escHtml(s.gameUsername||'?')+'</span>'+
+          '<span style="color:var(--blue)">Lv '+s.levelId+'</span>'+
+          '<span style="color:var(--green)">'+s.score+'</span>'+
+          '<span style="color:var(--red)">'+s.time+'s</span>'+
+          '<span style="color:#888;font-size:.72rem">'+date+'</span>'+
+          '<span><button class="btn-sm" style="font-size:.65rem;padding:3px 7px" onclick="adminRemoveScore(\''+doc.id+'\')">x</button></span>'+
+        '</div>';
+      });
+      html += '</div>';
+      content.innerHTML = html;
+    }).catch(err => { content.innerHTML='<div class="lb-empty">Error: '+escHtml(err.message)+'<br/><small>Scores may need a Firestore index for timestamp ordering.</small></div>'; });
+  }
+
+  if (tab === 'logins') {
+    db.collection('loginEvents').orderBy('timestamp','desc').limit(100).get().then(snap => {
+      if (snap.empty) { content.innerHTML='<div class="lb-empty">No login events yet.</div>'; return; }
+      let html = '<div class="admin-table"><div class="admin-row logins-cols aheader">'+
+        '<span>Name</span><span>Email</span><span>Time</span></div>';
+      snap.docs.forEach(doc => {
+        const e = doc.data();
+        const date = e.timestamp ? new Date(e.timestamp.seconds*1000).toLocaleString() : '-';
+        html += '<div class="admin-row logins-cols">'+
+          '<span style="overflow:hidden;text-overflow:ellipsis">'+escHtml(e.displayName||'Unknown')+'</span>'+
+          '<span style="font-size:.72rem;overflow:hidden;text-overflow:ellipsis;color:#888">'+escHtml(e.email||'-')+'</span>'+
+          '<span style="font-size:.72rem;color:#888">'+date+'</span>'+
+        '</div>';
+      });
+      html += '</div>';
+      content.innerHTML = html;
+    }).catch(err => { content.innerHTML='<div class="lb-empty">Error: '+escHtml(err.message)+'</div>'; });
+  }
+}
+
+function adminRemoveUser(uid) {
+  if (!confirm('Remove this user and all their scores? This cannot be undone.')) return;
+  const batch = db.batch();
+  db.collection('users').doc(uid).delete();
+  db.collection('scores').where('userId','==',uid).get().then(snap => {
+    snap.docs.forEach(doc => doc.ref.delete());
+    loadAdminStats();
+    loadAdminContent('users');
+  });
+}
+
+function adminRemoveScore(scoreId) {
+  if (!confirm('Delete this score entry?')) return;
+  db.collection('scores').doc(scoreId).delete().then(() => {
+    loadAdminStats();
+    loadAdminContent('scores');
+  });
+}
+
+// ── UTIL ──────────────────────────────────────────────
+function escHtml(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 // ══════════════════════════════════════════════════════
