@@ -183,8 +183,9 @@
       transition:transform .15s cubic-bezier(.34,1.56,.64,1);
       pointer-events:none; cursor:pointer;
     }
-    .mole.up      { transform:translateX(-50%) translateY(4%);   pointer-events:all; }
-    .mole.whacked { transform:translateX(-50%) translateY(120%); pointer-events:none; transition:transform .18s ease-in; }
+    /* Mole pops UP THROUGH the hole — above the dirt when visible */
+    .mole.up      { transform:translateX(-50%) translateY(4%);   pointer-events:all; z-index:20; }
+    .mole.whacked { transform:translateX(-50%) translateY(120%); pointer-events:none; transition:transform .18s ease-in; z-index:10; }
     .mole svg { width:100%; height:auto; filter:drop-shadow(2px 3px 0 rgba(0,0,0,.35)); }
 
     /* ── COUNTDOWN ── */
@@ -409,7 +410,7 @@ let currentProfile = null; // { id, name, emoji }
 let gameUsername   = '';
 
 const ADMIN_EMAILS  = ['alancounihan@gmail.com'];
-const PROFILE_EMOJIS = ['&#x1F600;','&#x1F60E;','&#x1F929;','&#x1F973;','&#x1F61C;','&#x1F9B8;','&#x1F98A;','&#x1F43C;','&#x1F3AE;','&#x2B50;','&#x1F680;','&#x1F984;'];
+const PROFILE_EMOJIS = ['😀','😎','🤩','🥳','😜','🦸','🦊','🐼','🎮','⭐','🚀','🦄'];
 
 const FIREBASE_CONFIG = {
   apiKey:            "AIzaSyCzqvU02WdSVLnVd12rgVi7NlfBjduCWXo",
@@ -466,7 +467,8 @@ function showUserBar(user) {
   const av = document.getElementById('user-avatar');
   av.src = user.photoURL || '';
   av.style.display = user.photoURL ? 'block' : 'none';
-  document.getElementById('user-profile-emoji').textContent = currentProfile ? currentProfile.emoji : '';
+  // Use innerHTML so both plain emoji and legacy HTML-entity strings render correctly
+  document.getElementById('user-profile-emoji').innerHTML = currentProfile ? currentProfile.emoji : '';
   document.getElementById('user-name-bar').textContent = gameUsername || user.displayName || 'Player';
   document.getElementById('admin-bar-btn').style.display = isAdmin() ? 'inline-block' : 'none';
 }
@@ -694,8 +696,7 @@ function showScreen(id) {
 // ── LEVEL GRID ────────────────────────────────────────
 function buildLevelGrid() {
   const progress = loadProgress();
-  const emoji = currentProfile ? currentProfile.emoji : '';
-  document.getElementById('welcome-msg').textContent = emoji + ' Hi ' + gameUsername + '! Choose a level';
+  document.getElementById('welcome-msg').textContent = 'Hi ' + gameUsername + '! Choose a level';
   const grid = document.getElementById('level-grid');
   grid.innerHTML = '';
   LEVELS.forEach((lv, idx) => {
